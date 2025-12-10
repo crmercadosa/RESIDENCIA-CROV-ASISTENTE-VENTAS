@@ -1,3 +1,5 @@
+import { sendMessage } from './whatsapp.service.js';
+
 const processIncomingMessage = async (payload) => {
   const entry = payload.entry?.[0];
   const changes = entry?.changes?.[0];
@@ -14,6 +16,8 @@ const processIncomingMessage = async (payload) => {
   console.log('Mensaje recibido de:', name);
   console.log('Numero:', from);
   console.log('Texto:', text);
+
+  await sendMessage(from, `Hola ${name}, gracias por tu mensaje: "${text}". Te responderemos pronto.`);
 
   /*
     Logica a futuro no muy lejano:

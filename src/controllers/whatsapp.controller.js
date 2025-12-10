@@ -1,5 +1,6 @@
 // src/controllers/whatsapp.controller.js
-import { sendHelloWorld } from '../services/whatsapp.service.js';
+// Posiblemente este controlador quede obsoleto si no se usa en ningun lado
+import { sendMessage } from '../services/whatsapp.service.js';
 
 export const sendTestMessage = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ export const sendTestMessage = async (req, res) => {
       });
     }
 
-    const result = await sendHelloWorld(to);
+    const result = await sendMessage(to);
 
     res.status(200).json({
       message: 'Mensaje enviado correctamente',
