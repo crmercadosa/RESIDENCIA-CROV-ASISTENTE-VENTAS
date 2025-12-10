@@ -3,13 +3,16 @@ const processIncomingMessage = async (payload) => {
   const changes = entry?.changes?.[0];
   const value = changes?.value;
   const message = value?.messages?.[0];
+  const profile = value?.contacts?.[0];
 
   if (!message) return;
 
+  const author = profile?.name;
   const from = message.from;
   const text = message.text?.body;
-
-  console.log('Mensaje de:', from);
+  
+  console.log('Mensaje recibido de:', author);
+  console.log('Numero:', from);
   console.log('Texto:', text);
 
   /*
