@@ -7,7 +7,6 @@ import {
 const router = Router();
 
 router.get('/', verifyWebhook);
-
 router.post('/', receiveWebhook);
 
 export default router;

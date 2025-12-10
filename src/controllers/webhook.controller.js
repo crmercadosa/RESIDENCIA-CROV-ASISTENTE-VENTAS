@@ -4,7 +4,7 @@ export const verifyWebhook = (req, res) => {
   const challenge = req.query['hub.challenge'];
 
   if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
-    console.log('WEBHOOK VALIDADO');
+    console.log('✅ WEBHOOK VERIFIED');
     return res.status(200).send(challenge);
   }
 
@@ -12,9 +12,7 @@ export const verifyWebhook = (req, res) => {
 };
 
 export const receiveWebhook = (req, res) => {
-  const timestamp = new Date().toISOString();
-
-  console.log('\n Webhook recibido:', timestamp);
+  console.log('\n📩 Webhook recibido');
   console.log(JSON.stringify(req.body, null, 2));
 
   res.sendStatus(200);
