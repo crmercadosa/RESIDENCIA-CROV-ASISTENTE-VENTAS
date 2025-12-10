@@ -17,7 +17,6 @@ const processIncomingMessage = async (payload) => {
   console.log('Numero:', from);
   console.log('Texto:', text);
 
-  await sendMessage(from, `Hola ${name}, gracias por tu mensaje: "${text}". Te responderemos pronto.`);
 
   /*
     Logica a futuro no muy lejano:
