@@ -21,7 +21,9 @@ const processIncomingMessage = async (payload) => {
   console.log('Texto:', text);
   console.log('Phone Number ID:', phon_id);
 
-  if (phon_id === process.env.PHONE_NUMBER_ID) {return;}
+
+
+  if (phon_id === "830835660123457") {return;}
 
   // Responder al mensaje recibido
   const reply = `Hola ${name}, gracias por tu mensaje: "${text}". Te responderemos pronto.`;
