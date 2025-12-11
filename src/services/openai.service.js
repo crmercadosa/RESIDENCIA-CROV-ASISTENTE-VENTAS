@@ -1,28 +1,36 @@
 import openai from "../utils/openai.js";
+import { addMessageToHistory, getHistory } from "./conversation-history.service.js";
 
-export const generateResponse = async (incomingMessage) => {
+export const generateResponse = async (phone, incomingMessage) => {
 
- const completion = await openai.chat.completions.create({
-  model: "gpt-4.1-mini",
-  messages: [
-    {
-      role: "system",
-      content: `  Eres el asistente virtual de ventas y soporte de la empresa CROV. CROV es una casa de desarrollo tecnológico especializada en soluciones de punto de venta (POS), software personalizado para negocios, gestión de inventarios, integración de sistemas, analítica con inteligencia artificial y productos tecnológicos escalables para comercios y restaurantes. Ofrecen productos como plataformas web y móviles para administrar ventas, inventario y clientes con soporte continuo y asesoría cercana.
-                  Tu tarea es:
-                  1. Responder con un tono profesional, amigable, de forma lo mas humana posible y bastante claro.
-                  2. Entender las necesidades del cliente y ofrecer soluciones adecuadas dentro de lo que CROV puede brindar.
-                  3. No inventar servicios que no existan.
-                  4. Si el usuario hace preguntas fuera del alcance de CROV, sugerir contactar a soporte o agendar una consultoría.
-                `
-    }, 
-    {
-      role: "user",
-      content: `Usuario dice: "${incomingMessage}"`
-    }
-  ]
-});
+   // Guardar mensaje del usuario
+  addMessageToHistory(phone, "user", incomingMessage);
 
+  // Consultar eel historial de la conversación
+  const history = getHistory(phone);
+
+  const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+        Eres CROV AI, el asistente virtual de ventas de la empresa CROV.
+        NO saludes cada vez.
+        Habla como si siguieras una conversación activa.
+        Evita repetir lo que ya dijiste antes.
+        Sé profesional, cálido y útil.
+        Responde de forma breve, pero clara.
+        `
+              },
+              ...history
+      ]
+    });
 
   const response = completion.choices[0].message.content;
+
+  // Guardar respuesta del asistente
+  addMessageToHistory(phone, "assistant", response);
+
   return response;
 };

@@ -1,6 +1,6 @@
 import { sendMessage, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
-import { updateConversationActivity } from './conversation.service.js';
+import { updateConversationActivity } from './conversation-activity.service.js';
 
 const processIncomingMessage = async (payload) => {
   const entry = payload.entry?.[0];
@@ -29,7 +29,7 @@ const processIncomingMessage = async (payload) => {
 
   updateConversationActivity(phone);
 
-  const aiResponse = await generateResponse(text);
+  const aiResponse = await generateResponse(phone, text);
 
   try {
     await sendMessage(phone, aiResponse);
