@@ -19,8 +19,6 @@ export const verifyWebhook = (req, res) => {
 export const receiveMessage = async (req, res) => {
   try {
     console.log('Webhook recibido');
-    console.log(JSON.stringify(req.body, null, 2));
-
     await webhookService.processIncomingMessage(req.body);
 
     res.sendStatus(200);
