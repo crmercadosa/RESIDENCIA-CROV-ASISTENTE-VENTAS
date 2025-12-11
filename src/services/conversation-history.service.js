@@ -9,7 +9,7 @@ export const addMessageToHistory = (phone, role, content) => {
 
   histories.get(phone).push({ role, content });
 
-  // limitar historial para no gastar tokens
+  // aqui limita el historial para no gastar tokens
   if (histories.get(phone).length > 15) {
     histories.get(phone).shift(); 
   }
