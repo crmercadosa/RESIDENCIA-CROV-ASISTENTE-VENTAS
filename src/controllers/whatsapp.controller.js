@@ -12,7 +12,7 @@ export const sendTestMessage = async (req, res) => {
       });
     }
 
-    const result = await sendMessage(to);
+    const result = await sendMessage(to, 'Mensaje de prueba desde la API de WhatsApp Business');
 
     res.status(200).json({
       message: 'Mensaje enviado correctamente',

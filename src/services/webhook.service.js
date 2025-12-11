@@ -16,8 +16,10 @@ const processIncomingMessage = async (payload) => {
   const from = message.from;
   const text = message.text?.body;
 
+  const phone = normalizePhone(from);
+
   console.log('Mensaje recibido de:', name);
-  console.log('Número:', from);
+  console.log('Número:', phone);
   console.log('Texto:', text);
 
   try {
@@ -27,6 +29,20 @@ const processIncomingMessage = async (payload) => {
     console.error("ERROR AL ENVIAR MENSAJE A META:");
     console.error(err.response?.data || err.message);
   }
+};
+
+const normalizePhone = (num) => {
+  num = num.replace(/\D/g, "");
+
+  if (num.startsWith("521") && num.length === 13) {
+    num = "52" + num.slice(3);
+  }
+  
+  if (!num.startsWith("52")) {
+    num = "52" + num;
+  }
+
+  return num;
 };
 
 export default {
