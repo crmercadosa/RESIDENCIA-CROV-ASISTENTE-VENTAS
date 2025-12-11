@@ -1,20 +1,23 @@
-import { sendMessage } from './whatsapp.service.js';
+import { sendMessage, markAsRead } from './whatsapp.service.js';
 
 const processIncomingMessage = async (payload) => {
   const entry = payload.entry?.[0];
   const changes = entry?.changes?.[0];
   const value = changes?.value;
-  const message = value?.messages?.[0];
-  const contact = value?.contacts?.[0];
 
+  const status = value?.statuses?.[0];
+  if (status) return;  // ignorar eventos de status
+
+  const message = value?.messages?.[0];
   if (!message) return;
 
-  // Ignorar mensajes del propio número de WhatsApp Business
-  if (message.from === value.metadata.phone_number_id) return;
-
+  const contact = value?.contacts?.[0];
   const name = contact?.profile?.name || 'Desconocido';
   const from = message.from;
   const text = message.text?.body;
+
+  // Marcar como leído
+  await markAsRead(message.id);
 
   const phone = normalizePhone(from);
 
@@ -30,6 +33,7 @@ const processIncomingMessage = async (payload) => {
     console.error(err.response?.data || err.message);
   }
 };
+
 
 const normalizePhone = (num) => {
   num = num.replace(/\D/g, "");

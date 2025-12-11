@@ -23,3 +23,22 @@ export const sendMessage = async (to, message) => {
   );
   return response.data;
 };
+
+export const markAsRead = async (messageId) => {
+  const url = `https://graph.facebook.com/${process.env.WHATSAPP_VERSION}/${process.env.PHONE_NUMBER_ID}/messages`;
+
+  await axios.post(
+    url,
+    {
+      messaging_product: 'whatsapp',
+      status: 'read',
+      message_id: messageId
+    },
+    {
+      headers: { 
+        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+};
