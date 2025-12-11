@@ -1,4 +1,5 @@
 import { sendMessage, markAsRead } from './whatsapp.service.js';
+import { generateResponse } from './openai.service.js';
 
 const processIncomingMessage = async (payload) => {
   const entry = payload.entry?.[0];
@@ -25,9 +26,10 @@ const processIncomingMessage = async (payload) => {
   console.log('Número:', phone);
   console.log('Texto:', text);
 
+  const aiResponse = await generateResponse(text);
+
   try {
-    const reply = `Hola ${name}, gracias por tu mensaje: "${text}". Te responderemos pronto.`;
-    await sendMessage(phone, reply);
+    await sendMessage(phone, aiResponse);
   } catch (err) {
     console.error("ERROR AL ENVIAR MENSAJE A META:");
     console.error(err.response?.data || err.message);
