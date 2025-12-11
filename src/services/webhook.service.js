@@ -24,7 +24,7 @@ const processIncomingMessage = async (payload) => {
 
   try {
     const reply = `Hola ${name}, gracias por tu mensaje: "${text}". Te responderemos pronto.`;
-    await sendMessage(from, reply);
+    await sendMessage(phone, reply);
   } catch (err) {
     console.error("ERROR AL ENVIAR MENSAJE A META:");
     console.error(err.response?.data || err.message);
