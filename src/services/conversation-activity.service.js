@@ -1,10 +1,12 @@
+import { sendFinalMessage, sendReminder } from './reminder.service.js';
+
 // conversation-activity.service.js
 const conversations = new Map();
 
 // Tiempo de inactividad antes de enviar recordatorio (ms)
 const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutos
 // Cantidad máxima de recordatorios
-const MAX_REMINDERS = 2;
+const MAX_REMINDERS = 1;
 
 export const updateConversationActivity = (phone) => {
   const data = conversations.get(phone) || {};
@@ -35,13 +37,13 @@ const handleInactivity = async (phone) => {
 
   // Ver si ya se enviaron todos los recordatorios
   if (data.remindersSent >= MAX_REMINDERS) {
+    await sendFinalMessage(phone);
     data.active = false;
     conversations.set(phone, data);
     return;
   }
 
   try {
-    const { sendReminder } = await import('./reminder.service.js');
 
     await sendReminder(phone);
 
