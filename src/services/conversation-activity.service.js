@@ -1,9 +1,10 @@
 import { sendFinalMessage, sendReminder } from './reminder.service.js';
+import { clearHistory } from './conversation-history.service.js';
 
 // El historial se registra por numero del prospecto en un Map
 const conversations = new Map();
 
-// Tiempo de inactividad para enviar recordatorio (5 minutos para pruebas)
+// Tiempo de inactividad para enviar recordatorio
 const INACTIVITY_LIMIT = 1 * 60 * 1000; 
 const MAX_REMINDERS = 1;
 
@@ -14,7 +15,8 @@ const scheduleCleanup = (phone) => {
   setTimeout(() => {
     if (conversations.has(phone)) {
       conversations.delete(phone);
-      console.log(`Conversación eliminada de memoria: ${phone}`);
+      clearHistory(phone);
+      console.log(`Conversación e historial eliminada de memoria: ${phone}`);
     }
   }, CLEANUP_TIMEOUT);
 };
