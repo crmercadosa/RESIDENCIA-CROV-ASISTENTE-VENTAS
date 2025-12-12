@@ -72,7 +72,6 @@ export const generateResponse = async (phone, incomingMessage) => {
             - No saludes de nuevo si ya hubo conversación previa.
             - Adapta la recomendación al tipo de negocio del usuario.
             - No repitas lo que ya dijiste a menos que el usuario lo pida.
-            - Responde de forma breve pero clara.
             - Siempre ayuda al usuario a elegir la mejor solución según su caso.
           `
         },
