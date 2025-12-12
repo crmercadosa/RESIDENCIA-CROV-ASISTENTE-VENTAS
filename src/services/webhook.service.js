@@ -17,14 +17,17 @@ const processIncomingMessage = async (payload) => {
     const message = value.messages?.[0];
     if (!message) return;
     
-    
+    // Normalizar número de teléfono (por el momento solo México)
     const from = normalizePhone(message.from);
+
+    // Validar que el tipo de mensaje que llega sea de texto
     const messageType = message.type;
     if (messageType !== 'text') {
         await markAsRead(message.id);
         await sendMessage(from, "Actualmente solo puedo procesar mensajes de texto. Por favor, envíame un mensaje de texto para que pueda ayudarte.");
       return;
     }
+
     const contact = value.contacts?.[0];
     const name = contact?.profile?.name ?? "Desconocido";
     const text = message.text?.body;
