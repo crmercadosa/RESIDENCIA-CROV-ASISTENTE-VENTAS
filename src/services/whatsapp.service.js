@@ -1,44 +1,63 @@
-// src/services/whatsapp.service.js
-import axios from 'axios';
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: `https://graph.facebook.com/${process.env.WHATSAPP_VERSION}/${process.env.PHONE_NUMBER_ID}`,
+  headers: {
+    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type": "application/json"
+  },
+  timeout: 10000, // evitar cuelgues
+});
 
 export const sendMessage = async (to, message) => {
-  const url = `https://graph.facebook.com/${process.env.WHATSAPP_VERSION}/${process.env.PHONE_NUMBER_ID}/messages`;
+  if (!message || message.trim() === "") {
+    console.error("Intento de enviar mensaje vacío. Cancelado.");
+    return;
+  }
 
-  const response = await axios.post(
-    url,
-    {
-      messaging_product: 'whatsapp',
+  try {
+    const payload = {
+      messaging_product: "whatsapp",
       to,
-      type: 'text',
-      text: {
-        "body": message
-      }
-    },
-    {
-      headers: { 
-        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+      type: "text",
+      text: { body: message }
+    };
+
+    const { data } = await api.post("/messages", payload);
+
+    return data;
+
+  } catch (err) {
+    const metaError = err.response?.data;
+    console.error("Error enviando mensaje a WhatsApp:", metaError || err.message);
+
+    // Token caducado o inválido
+    if (metaError?.error?.code === 190) {
+      console.error("Token inválido o caducado. Revisa el WHATSAPP_TOKEN.");
     }
-  );
-  return response.data;
+
+    // Rate limit
+    if (metaError?.error?.code === 131056) {
+      console.error("Estás enviando mensajes demasiado rápido.");
+    }
+
+    return null;
+  }
 };
 
 export const markAsRead = async (messageId) => {
-  const url = `https://graph.facebook.com/${process.env.WHATSAPP_VERSION}/${process.env.PHONE_NUMBER_ID}/messages`;
+  if (!messageId) return;
 
-  await axios.post(
-    url,
-    {
-      messaging_product: 'whatsapp',
-      status: 'read',
+  try {
+    const payload = {
+      messaging_product: "whatsapp",
+      status: "read",
       message_id: messageId
-    },
-    {
-      headers: { 
-        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
+    };
+
+    await api.post("/messages", payload);
+    
+  } catch (err) {
+    console.error("Error marcando como leído:", err.response?.data || err.message);
+  }
 };

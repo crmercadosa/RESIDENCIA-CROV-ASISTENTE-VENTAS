@@ -3,55 +3,57 @@ import { generateResponse } from './openai.service.js';
 import { updateConversationActivity } from './conversation-activity.service.js';
 
 const processIncomingMessage = async (payload) => {
-  const entry = payload.entry?.[0];
-  const changes = entry?.changes?.[0];
-  const value = changes?.value;
-
-  const status = value?.statuses?.[0];
-  if (status) return;  // ignorar eventos de status
-
-  const message = value?.messages?.[0];
-  if (!message) return;
-
-  const contact = value?.contacts?.[0];
-  const name = contact?.profile?.name || 'Desconocido';
-  const from = message.from;
-  const text = message.text?.body;
-
-  // Marcar como leído
-  await markAsRead(message.id);
-
-  const phone = normalizePhone(from);
-
-  console.log('Mensaje recibido de:', name);
-  console.log('Número:', phone);
-  console.log('Texto:', text);
-
-  updateConversationActivity(phone);
-
-  const aiResponse = await generateResponse(phone, text);
-
   try {
-    await sendMessage(phone, aiResponse);
+    const entry = payload.entry?.[0];
+    const changes = entry?.changes?.[0];
+    const value = changes?.value;
+
+    if (!value) return;
+
+    // Ignorar eventos tipo "sent", "delivered", "read"
+    const status = value.statuses?.[0];
+    if (status) return;
+
+    const message = value.messages?.[0];
+    if (!message) return;
+
+    const from = normalizePhone(message.from);
+    const contact = value.contacts?.[0];
+    const name = contact?.profile?.name ?? "Desconocido";
+    const text = message.text?.body;
+
+    if (!text) return;
+
+    // Marcar como leído
+    await markAsRead(message.id);
+
+    console.log(`Mensaje recibido de ${name} (${from}): ${text}`);
+
+    updateConversationActivity(from);
+
+    const aiResponse = await generateResponse(from, text);
+
+    await sendMessage(from, aiResponse);
+
   } catch (err) {
-    console.error("ERROR AL ENVIAR MENSAJE A META:");
-    console.error(err.response?.data || err.message);
+    console.error("Error procesando mensaje:", err);
   }
 };
 
-
-const normalizePhone = (num) => {
+export const normalizePhone = (num = "") => {
   num = num.replace(/\D/g, "");
 
+  // Quitar 521 cuando viene de Android "envía como SMS"
   if (num.startsWith("521") && num.length === 13) {
     num = "52" + num.slice(3);
   }
-  
-  if (!num.startsWith("52")) {
+
+  // Si no tiene país → agregar México por default
+  if (num.length === 10) {
     num = "52" + num;
   }
 
-  return num;
+  return "+" + num;
 };
 
 export default {

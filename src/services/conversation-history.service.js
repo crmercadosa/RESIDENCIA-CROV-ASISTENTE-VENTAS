@@ -1,18 +1,17 @@
-// conversation-history.service.js
-
 const histories = new Map();
+const MAX_HISTORY = 15;
 
 export const addMessageToHistory = (phone, role, content) => {
-  if (!histories.has(phone)) {
-    histories.set(phone, []);
+  if (!histories.has(phone)) histories.set(phone, []);
+
+  const history = histories.get(phone);
+  history.push({ role, content });
+
+  if (history.length > MAX_HISTORY) {
+    history.splice(0, history.length - MAX_HISTORY);
   }
 
-  histories.get(phone).push({ role, content });
-
-  // aqui limita el historial para no gastar tokens
-  if (histories.get(phone).length > 15) {
-    histories.get(phone).shift(); 
-  }
+  histories.set(phone, history);
 };
 
 export const getHistory = (phone) => {
