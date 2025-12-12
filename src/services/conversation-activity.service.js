@@ -4,11 +4,11 @@ import { sendFinalMessage, sendReminder } from './reminder.service.js';
 const conversations = new Map();
 
 // Tiempo de inactividad para enviar recordatorio (5 minutos para pruebas)
-const INACTIVITY_LIMIT = 5 * 60 * 1000; 
+const INACTIVITY_LIMIT = 1 * 60 * 1000; 
 const MAX_REMINDERS = 1;
 
 // Limpia completamente la conversación después de cierto tiempo finalizada la conversación
-const CLEANUP_TIMEOUT = 10 * 60 * 1000;
+const CLEANUP_TIMEOUT = 1 * 60 * 1000;
 
 const scheduleCleanup = (phone) => {
   setTimeout(() => {
