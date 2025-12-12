@@ -85,6 +85,8 @@ export const sendFinalMessage = async (phone) => {
 
   const reminderText = completion.choices[0].message.content.trim();
 
+  const text = "Parece que no has respondido más, estaré aquí cuando me necesites. ¡Que tengas un excelente día!";
+
   // Enviar por WhatsApp
-  await sendMessage(phone, reminderText);
+  await sendMessage(phone, text);
 };
