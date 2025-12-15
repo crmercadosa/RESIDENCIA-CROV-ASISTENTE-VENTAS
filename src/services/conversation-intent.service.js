@@ -19,7 +19,7 @@ export const identifyIntent = async (message) => {
   const text = message.toLowerCase();
 
   // Se utiliza esta regla simple primero para evitar costos innecesarios, si en el mensaje del prospecto existe alguna de estas frases se da por terminada la conversación
-  if (END_KEYWORDS.some(k => text.includes(k))) {
+  if (END_KEYWORDS.some(keyword => text.includes(keyword))) {
     return "end_conversation";
   }
 

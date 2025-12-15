@@ -51,10 +51,8 @@ const processIncomingMessage = async (payload) => {
     if (intent === "end_conversation") {
       if (!isConversationClosed(from)) {
         closeConversation(from);
-        await sendMessage(
-          from,
-          "Entendido 👍 Si más adelante necesitas ayuda, aquí estaré."
-        );
+        const aiResponse = await generateResponse(from, text);
+        await sendMessage(from, aiResponse);
       }
       return;
     }
