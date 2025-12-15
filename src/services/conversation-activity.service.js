@@ -1,10 +1,6 @@
 import { sendFinalMessage, sendReminder } from './conversation-reminder.service.js';
 import { clearHistory } from './conversation-history.service.js';
 
-// ==============================
-// Configuración
-// ==============================
-
 const conversations = new Map();
 
 const INACTIVITY_LIMIT = 1 * 60 * 1000;
@@ -23,13 +19,26 @@ const getConversation = (phone) => {
       remindersSent: 0,
       lastActivity: Date.now(),
       timeoutId: null,
+      cleanupTimeoutId: null,
     });
   }
   return conversations.get(phone);
 };
 
+const cancelCleanup = (data) => {
+  if (data.cleanupTimeoutId) {
+    clearTimeout(data.cleanupTimeoutId);
+    data.cleanupTimeoutId = null;
+  }
+};
+
 const scheduleCleanup = (phone) => {
-  setTimeout(() => {
+  const data = conversations.get(phone);
+  if (!data) return;
+
+  cancelCleanup(data);
+
+  data.cleanupTimeoutId = setTimeout(() => {
     conversations.delete(phone);
     clearHistory(phone);
     console.log(`Conversación e historial eliminados: ${phone}`);
@@ -63,6 +72,8 @@ export const isConversationClosed = (phone) => {
 export const reopenConversation = (phone) => {
   const data = getConversation(phone);
 
+  cancelCleanup(data);
+
   data.closed = false;
   data.active = true;
   data.remindersSent = 0;
@@ -77,10 +88,9 @@ export const reopenConversation = (phone) => {
 export const updateConversationActivity = (phone) => {
   const data = getConversation(phone);
 
-  // Si estaba cerrada y vuelve a escribir → reabrir
+  // 🔑 Si estaba cerrada → reabrir correctamente
   if (data.closed) {
-    data.closed = false;
-    data.remindersSent = 0;
+    reopenConversation(phone);
   }
 
   if (data.timeoutId) clearTimeout(data.timeoutId);
@@ -101,14 +111,8 @@ const handleInactivity = async (phone) => {
   const data = conversations.get(phone);
   if (!data || !data.active) return;
 
-  // Si ya está cerrada → no enviar nada
-  if (data.closed) {
-    console.log(`Conversación cerrada, no se envían recordatorios: ${phone}`);
-    scheduleCleanup(phone);
-    return;
-  }
+  if (data.closed) return;
 
-  // Límite de recordatorios alcanzado
   if (data.remindersSent >= MAX_REMINDERS) {
     await sendFinalMessage(phone);
     data.active = false;
