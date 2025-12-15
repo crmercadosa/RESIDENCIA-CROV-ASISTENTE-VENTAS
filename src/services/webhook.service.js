@@ -1,6 +1,6 @@
 import { sendMessage, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
-import { closeConversation, updateConversationActivity } from './conversation-activity.service.js';
+import { closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
 import { identifyIntent } from './conversation-intent.service.js';
 
 const processIncomingMessage = async (payload) => {
@@ -40,19 +40,28 @@ const processIncomingMessage = async (payload) => {
     // Marcar como leído
     await markAsRead(message.id);
 
+    // Si ya estaba cerrada, reabrir automáticamente
+    if (isConversationClosed(from)) {
+      console.log("Reabriendo conversación...");
+    }
+
     // Identificar intención del mensaje
     const intent = await identifyIntent(text);
 
     if (intent === "end_conversation") {
-      closeConversation(from);
-      await sendMessage(from, "Entendido, si en otro momento necesitas ayuda, aquí estaré. ¡Que tengas un buen día!");
+      if (!isConversationClosed(from)) {
+        closeConversation(from);
+        await sendMessage(
+          from,
+          "Entendido 👍 Si más adelante necesitas ayuda, aquí estaré."
+        );
+      }
       return;
     }
 
     updateConversationActivity(from);
 
     const aiResponse = await generateResponse(from, text);
-
     await sendMessage(from, aiResponse);
 
   } catch (err) {

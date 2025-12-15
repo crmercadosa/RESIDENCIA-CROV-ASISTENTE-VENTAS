@@ -1,119 +1,119 @@
-import { sendFinalMessage, sendReminder } from './reminder.service.js';
+import { sendFinalMessage, sendReminder } from './conversation-reminder.service.js';
 import { clearHistory } from './conversation-history.service.js';
 
-// El historial se registra por numero del prospecto en un Map
+// ==============================
+// Configuración
+// ==============================
+
 const conversations = new Map();
 
-// Tiempo de inactividad para enviar recordatorio
-const INACTIVITY_LIMIT = 1 * 60 * 1000; 
+const INACTIVITY_LIMIT = 1 * 60 * 1000;
 const MAX_REMINDERS = 1;
-
-// Limpia completamente la conversación después de cierto tiempo finalizada la conversación
 const CLEANUP_TIMEOUT = 1 * 60 * 1000;
 
-// Estado de la conversación por número
-const conversationState = {};
+// ==============================
+// Helpers
+// ==============================
 
-// ------------------------------------
-// Limpieza completa de la conversación
-// ------------------------------------
+const getConversation = (phone) => {
+  if (!conversations.has(phone)) {
+    conversations.set(phone, {
+      closed: false,
+      active: true,
+      remindersSent: 0,
+      lastActivity: Date.now(),
+      timeoutId: null,
+    });
+  }
+  return conversations.get(phone);
+};
 
 const scheduleCleanup = (phone) => {
   setTimeout(() => {
-    if (conversations.has(phone)) {
-      conversations.delete(phone);
-      clearHistory(phone);
-      console.log(`Conversación e historial eliminada de memoria: ${phone}`);
-    }
+    conversations.delete(phone);
+    clearHistory(phone);
+    console.log(`Conversación e historial eliminados: ${phone}`);
   }, CLEANUP_TIMEOUT);
 };
 
-// --------------------------
-// Estado de la conversación
-// --------------------------
+// ==============================
+// Estado de conversación
+// ==============================
 
 export const closeConversation = (phone) => {
-  // Estado lógico de la conversación
-  conversationState[phone] = {
-    ...(conversationState[phone] || {}),
-    closed: true
-  };
+  const data = getConversation(phone);
 
-  // Estado de los recordatorios 
-  if (conversations.has(phone)) {
-    const data = conversations.get(phone);
+  data.closed = true;
+  data.active = false;
 
-    if (data.timeoutId) {
-      clearTimeout(data.timeoutId);
-    }
-
-    conversations.delete(phone);
+  if (data.timeoutId) {
+    clearTimeout(data.timeoutId);
+    data.timeoutId = null;
   }
 
-  // Limpieza de historial de la conversación
-  clearHistory(phone);
+  scheduleCleanup(phone);
 
   console.log(`Conversación cerrada manualmente: ${phone}`);
 };
 
-
 export const isConversationClosed = (phone) => {
-  return conversationState[phone]?.closed === true;
+  return conversations.get(phone)?.closed === true;
 };
 
-// ----------------------------
-// Actividad de la conversación
-// ----------------------------
+export const reopenConversation = (phone) => {
+  const data = getConversation(phone);
+
+  data.closed = false;
+  data.active = true;
+  data.remindersSent = 0;
+
+  console.log(`Conversación reabierta: ${phone}`);
+};
+
+// ==============================
+// Actividad del chat
+// ==============================
 
 export const updateConversationActivity = (phone) => {
+  const data = getConversation(phone);
 
-  // Si estaba cerrada y el usuario vuelve a escribir → reabrir
-  if (conversationState[phone]?.closed) {
-    conversationState.set(phone, { closed: false });
-  };
+  // Si estaba cerrada y vuelve a escribir → reabrir
+  if (data.closed) {
+    data.closed = false;
+    data.remindersSent = 0;
+  }
 
-  let data = conversations.get(phone) || {
-    remindersSent: 0,
-    active: true,
-  };
-
-  // Si hay un timeout viejo limpiarlo y evitar fugas de memoria
   if (data.timeoutId) clearTimeout(data.timeoutId);
 
   data.lastActivity = Date.now();
-  data.remindersSent = 0;
   data.active = true;
 
   data.timeoutId = setTimeout(() => {
     handleInactivity(phone);
   }, INACTIVITY_LIMIT);
-
-  conversations.set(phone, data);
 };
 
-// -----------------------
-// Manejar la inactividad
-// -----------------------
+// ==============================
+// Manejo de inactividad
+// ==============================
 
 const handleInactivity = async (phone) => {
   const data = conversations.get(phone);
-
   if (!data || !data.active) return;
 
-  // Si el numero ya cerró la conversación, no hacer nada para evitar mandar los recordatorios
-  if (isConversationClosed(phone)) {
-    console.log(`La conversación está cerrada. No se envían recordatorios.`);
-    conversations.set(phone, data);
+  // Si ya está cerrada → no enviar nada
+  if (data.closed) {
+    console.log(`Conversación cerrada, no se envían recordatorios: ${phone}`);
     scheduleCleanup(phone);
     return;
   }
 
-  // Un vez alcanzado el límite de recordatorios, enviar mensaje final y cerrar     
+  // Límite de recordatorios alcanzado
   if (data.remindersSent >= MAX_REMINDERS) {
     await sendFinalMessage(phone);
     data.active = false;
+    data.closed = true;
     scheduleCleanup(phone);
-    conversations.set(phone, data);
     return;
   }
 
@@ -126,8 +126,6 @@ const handleInactivity = async (phone) => {
       () => handleInactivity(phone),
       INACTIVITY_LIMIT
     );
-
-    conversations.set(phone, data);
   } catch (err) {
     console.error("Error enviando recordatorio:", err);
   }
