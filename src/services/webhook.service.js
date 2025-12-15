@@ -1,6 +1,7 @@
 import { sendMessage, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
-import { updateConversationActivity } from './conversation-activity.service.js';
+import { closeConversation, updateConversationActivity } from './conversation-activity.service.js';
+import { identifyIntent } from './conversation-intent.service.js';
 
 const processIncomingMessage = async (payload) => {
   try {
@@ -34,10 +35,19 @@ const processIncomingMessage = async (payload) => {
 
     if (!text) return;
 
+    console.log(`Mensaje recibido de ${name} (${from}): ${text}`);
+
     // Marcar como leído
     await markAsRead(message.id);
 
-    console.log(`Mensaje recibido de ${name} (${from}): ${text}`);
+    // Identificar intención del mensaje
+    const intent = await identifyIntent(text);
+
+    if (intent === "end_conversation") {
+      closeConversation(from);
+      await sendMessage(from, "Entendido, si en otro momento necesitas ayuda, aquí estaré. ¡Que tengas un buen día!");
+      return;
+    }
 
     updateConversationActivity(from);
 

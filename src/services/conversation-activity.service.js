@@ -11,6 +11,13 @@ const MAX_REMINDERS = 1;
 // Limpia completamente la conversación después de cierto tiempo finalizada la conversación
 const CLEANUP_TIMEOUT = 1 * 60 * 1000;
 
+// Estado de la conversación por número
+const conversationState = {};
+
+// ------------------------------------
+// Limpieza completa de la conversación
+// ------------------------------------
+
 const scheduleCleanup = (phone) => {
   setTimeout(() => {
     if (conversations.has(phone)) {
@@ -21,7 +28,30 @@ const scheduleCleanup = (phone) => {
   }, CLEANUP_TIMEOUT);
 };
 
+// --------------------------
+// Estado de la conversación
+// --------------------------
+
+export const closeConversation = (phone) => {
+  if (conversationState[phone]) conversationState[phone] = {};
+  conversationState[phone].closed = true;
+};
+
+export const isConversationClosed = (phone) => {
+  return conversationState[phone]?.closed === true;
+};
+
+// ----------------------------
+// Actividad de la conversación
+// ----------------------------
+
 export const updateConversationActivity = (phone) => {
+
+  // Si estaba cerrada y el usuario vuelve a escribir → reabrir
+  if (conversationState[phone]?.closed) {
+    conversationState.set(phone, { closed: false });
+  };
+
   let data = conversations.get(phone) || {
     remindersSent: 0,
     active: true,
@@ -41,16 +71,27 @@ export const updateConversationActivity = (phone) => {
   conversations.set(phone, data);
 };
 
+// -----------------------
+// Manejar la inactividad
+// -----------------------
+
 const handleInactivity = async (phone) => {
   const data = conversations.get(phone);
 
   if (!data || !data.active) return;
 
+  // Si el numero ya cerró la conversación, no hacer nada para evitar mandar los recordatorios
+  if (isConversationClosed(phone)) {
+    console.log(`La conversación está cerrada. No se envían recordatorios.`);
+    conversations.set(phone, data);
+    scheduleCleanup(phone);
+    return;
+  }
+
+  // Un vez alcanzado el límite de recordatorios, enviar mensaje final y cerrar     
   if (data.remindersSent >= MAX_REMINDERS) {
     await sendFinalMessage(phone);
     data.active = false;
-
-    // Agendar limpieza completa
     scheduleCleanup(phone);
     conversations.set(phone, data);
     return;
