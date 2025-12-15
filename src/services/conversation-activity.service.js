@@ -33,9 +33,29 @@ const scheduleCleanup = (phone) => {
 // --------------------------
 
 export const closeConversation = (phone) => {
-  if (conversationState[phone]) conversationState[phone] = {};
-  conversationState[phone].closed = true;
+  // Estado lógico de la conversación
+  conversationState[phone] = {
+    ...(conversationState[phone] || {}),
+    closed: true
+  };
+
+  // Estado de los recordatorios 
+  if (conversations.has(phone)) {
+    const data = conversations.get(phone);
+
+    if (data.timeoutId) {
+      clearTimeout(data.timeoutId);
+    }
+
+    conversations.delete(phone);
+  }
+
+  // Limpieza de historial de la conversación
+  clearHistory(phone);
+
+  console.log(`Conversación cerrada manualmente: ${phone}`);
 };
+
 
 export const isConversationClosed = (phone) => {
   return conversationState[phone]?.closed === true;
