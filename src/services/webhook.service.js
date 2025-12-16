@@ -59,7 +59,7 @@ const processIncomingMessage = async (payload) => {
 
     if (intent === "send_pdf") {
       console.log("El usuario solicitó un PDF.");
-      await sendDocument(from, "https://drive.google.com/file/d/1t-ZnwnMgdWnXXxooskeGFa0lXPiHUxvF/view?usp=drive_link", "Planes_CROV.pdf");
+      await sendDocument(from, "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd", "Planes_CROV.pdf");
       return;
     }
 
