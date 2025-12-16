@@ -1,4 +1,3 @@
-// src/routes/whatsapp.routes.js
 import { Router } from 'express';
 import { sendTestMessage } from '../controllers/whatsapp.controller.js';
 

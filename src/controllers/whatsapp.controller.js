@@ -1,4 +1,3 @@
-// src/controllers/whatsapp.controller.js
 // Posiblemente este controlador quede obsoleto si no se usa en ningun lado
 import { sendMessage } from '../services/whatsapp.service.js';
 
