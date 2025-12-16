@@ -87,11 +87,6 @@ const processIncomingMessage = async (payload) => {
       const aiResponse = await generateResponse(from, text);
       await sendMessage(from, aiResponse);
 
-      await sendMessage(
-        from,
-        "¿Deseas que te envíe un PDF con la información completa y detallada de los planes?"
-      );
-
       setAwaitingPdf(from, "plans");
       return;
     }

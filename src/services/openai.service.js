@@ -86,6 +86,7 @@ export const generateResponse = async (phone, incomingMessage) => {
             - No repitas lo que ya dijiste a menos que el usuario lo pida.
             - Siempre ayuda al usuario a elegir la mejor solución según su caso.
             - En caso de recibir un mensaje con intención de terminar la conversación, responde de forma amable y profesional, cerrando la interacción de manera positiva.
+            - En caso de recibir un mensaje con intencion de solicitar informacion de los planes o precios que manejas, preguntale si desea un pdf con informacion mas detallada.
           `
         },
         ...safeHistory
