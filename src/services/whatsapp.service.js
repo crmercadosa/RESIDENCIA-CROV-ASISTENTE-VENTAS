@@ -48,7 +48,7 @@ export const sendMessage = async (to, message) => {
 
 // Enviar documento
 export const sendDocument = async (to, docurl, filename) => {
-  if (!docurl || !fileName) {
+  if (!docurl || !filename) {
     console.error("Intento de enviar documento. Cancelado.");
     return;
   }
