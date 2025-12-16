@@ -31,16 +31,18 @@ export const identifyIntent = async (message) => {
       {
         role: "system",
         content: `
-    Eres un clasificador de intención.
-    Responde SOLO:
-    - end_conversation
-    - continue
-    - unknown
-            `
-        },
-        { role: "user", content: message }
-        ]
-    });
+                  Eres un clasificador de intención.
+                  Responde SOLO:
+                  - send_pdf - si el mensaje pregunta por informacion detallada de los planes, paquetes, precios o servicios.
+                  - send_image - si el mensaje solicita una imagen de algún producto, servicio o material visual.
+                  - end_conversation - si el mensaje indica que la persona quiere terminar la conversación.
+                  - continue
+                  - unknown
+                `
+            },
+            { role: "user", content: message }
+            ]
+        });
 
     return completion.choices[0].message.content
         .trim()

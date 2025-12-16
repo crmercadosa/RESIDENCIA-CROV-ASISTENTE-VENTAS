@@ -57,6 +57,10 @@ const processIncomingMessage = async (payload) => {
       return;
     }
 
+    if (intent === "send_pdf") {
+      console.log("El usuario solicitó un PDF.");
+    }
+
     updateConversationActivity(from);
 
     const aiResponse = await generateResponse(from, text);
