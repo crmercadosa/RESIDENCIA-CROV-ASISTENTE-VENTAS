@@ -1,27 +1,26 @@
 import openai from "../utils/openai.js";
 
-const END_KEYWORDS = [
-  "no quiero",
-  "ya no",
-  "no gracias",
-  "ya no me interesa",
-  "no me interesa",
-  "no necesito",
-  "ya no quiero nada",
-  "bye",
-  "adiós",
-  "gracias ya no"
-];
+// const END_KEYWORDS = [
+//   "no quiero",
+//   "ya no",
+//   "ya no me interesa",
+//   "no me interesa",
+//   "no necesito",
+//   "ya no quiero nada",
+//   "bye",
+//   "adiós",
+//   "gracias ya no"
+// ];
 
 export const identifyIntent = async (message) => {
   if (!message || !message.trim()) return "unknown";
 
-  const text = message.toLowerCase();
+  // const text = message.toLowerCase();
 
-  // Se utiliza esta regla simple primero para evitar costos innecesarios, si en el mensaje del prospecto existe alguna de estas frases se da por terminada la conversación
-  if (END_KEYWORDS.some(keyword => text.includes(keyword))) {
-    return "end_conversation";
-  }
+  // // Se utiliza esta regla simple primero para evitar costos innecesarios, si en el mensaje del prospecto existe alguna de estas frases se da por terminada la conversación
+  // if (END_KEYWORDS.some(keyword => text.includes(keyword))) {
+  //   return "end_conversation";
+  // }
 
   // OpenAI SOLO si hay duda en la intención del mensaje
   const completion = await openai.chat.completions.create({
@@ -33,8 +32,7 @@ export const identifyIntent = async (message) => {
         content: `
                   Eres un clasificador de intención.
                   Responde SOLO:
-                  - send_pdf - si el mensaje pregunta por informacion detallada de los planes, paquetes, precios o servicios.
-                  - send_image - si el mensaje solicita una imagen de algún producto, servicio o material visual.
+                  - plans_info - si el mensaje pregunta por informacion detallada de los planes, paquetes, precios o servicios.
                   - end_conversation - si el mensaje indica que la persona quiere terminar la conversación.
                   - continue
                   - unknown

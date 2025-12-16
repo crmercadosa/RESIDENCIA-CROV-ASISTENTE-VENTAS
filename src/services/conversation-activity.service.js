@@ -20,6 +20,8 @@ const getConversation = (phone) => {
       lastActivity: Date.now(),
       timeoutId: null,
       cleanupTimeoutId: null,
+      awaitingPdfConfirmation: false,
+      pendingPdfType: null
     });
   }
   return conversations.get(phone);
@@ -44,6 +46,27 @@ const scheduleCleanup = (phone) => {
     console.log(`Conversación e historial eliminados: ${phone}`);
   }, CLEANUP_TIMEOUT);
 };
+
+export const setAwaitingPdf = (phone, pdfType) => {
+  const data = getConversation(phone);
+  data.awaitingPdfConfirmation = true;
+  data.pendingPdfType = pdfType;
+};
+
+export const clearAwaitingPdf = (phone) => {
+  const data = getConversation(phone);
+  data.awaitingPdfConfirmation = false;
+  data.pendingPdfType = null;
+};
+
+export const isAwaitingPdf = (phone) => {
+  return conversations.get(phone)?.awaitingPdfConfirmation === true;
+};
+
+export const getPendingPdf = (phone) => {
+  return conversations.get(phone)?.pendingPdfType;
+};
+
 
 // ==============================
 // Estado de conversación

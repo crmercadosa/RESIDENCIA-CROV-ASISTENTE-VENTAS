@@ -99,7 +99,7 @@ export const generateResponse = async (phone, incomingMessage) => {
       return "Lo siento, no entendí bien el mensaje. ¿Podrías repetirlo?";
     }
 
-    // 4. Guardar respuesta del asistente
+    // Guardar respuesta del asistente
     addMessageToHistory(phone, "assistant", response);
 
     return response;
@@ -107,6 +107,6 @@ export const generateResponse = async (phone, incomingMessage) => {
   } catch (err) {
     console.error("Error generando respuesta con OpenAI:", err);
 
-    return "Parece que tengo un problema técnico en este momento 🙏. Inténtalo de nuevo por favor.";
+    return "Parece que tengo un problema técnico en este momento. Inténtalo de nuevo por favor.";
   }
 };
