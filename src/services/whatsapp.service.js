@@ -47,7 +47,7 @@ export const sendMessage = async (to, message) => {
 };
 
 // Enviar documento
-export const sendDocument = async (to, docurl, fileName) => {
+export const sendDocument = async (to, docurl, filename) => {
   if (!docurl || !fileName) {
     console.error("Intento de enviar documento. Cancelado.");
     return;
@@ -60,7 +60,7 @@ export const sendDocument = async (to, docurl, fileName) => {
       type: "document",
       document: {
         link: docurl,
-        fileName
+        filename
       }
     };
 
