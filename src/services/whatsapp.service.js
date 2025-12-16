@@ -9,6 +9,7 @@ const api = axios.create({
   timeout: 10000, // evitar cuelgues
 });
 
+// Enviar mensaje de texto simple
 export const sendMessage = async (to, message) => {
   if (!message || message.trim() === "") {
     console.error("Intento de enviar mensaje vacío. Cancelado.");
@@ -44,6 +45,47 @@ export const sendMessage = async (to, message) => {
     return null;
   }
 };
+
+// Enviar documento
+export const sendDocument = async (to, docurl, fileName) => {
+  if (!docurl || !fileName) {
+    console.error("Intento de enviar documento. Cancelado.");
+    return;
+  }
+
+  try {
+    const payload = {
+      messaging_product: "whatsapp",
+      to,
+      type: "document",
+      document: {
+        link: docurl,
+        fileName
+      }
+    };
+
+    const { data } = await api.post("/messages", payload);
+
+    return data;
+
+  } catch (err) {
+    const metaError = err.response?.data;
+    console.error("Error enviando documento a WhatsApp:", metaError || err.message);
+
+    // Token caducado o inválido
+    if (metaError?.error?.code === 190) {
+      console.error("Token inválido o caducado. Revisa el WHATSAPP_TOKEN.");
+    }
+
+    // Rate limit
+    if (metaError?.error?.code === 131056) {
+      console.error("Estás enviando mensajes demasiado rápido.");
+    }
+
+    return null;
+  }
+};
+
 
 export const markAsRead = async (messageId) => {
   if (!messageId) return;

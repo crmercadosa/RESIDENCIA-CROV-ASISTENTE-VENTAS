@@ -11,7 +11,7 @@ app.use('/webhook/whatsapp', webhookRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 
 // Ruta raíz
-app.get('/', (req, res) => {
+app.get('/', (res) => {
   res.send('API Asistente CROV funcionando correctamente');
 });
 
