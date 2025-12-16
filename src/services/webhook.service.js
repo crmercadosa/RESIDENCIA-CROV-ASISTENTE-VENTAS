@@ -2,7 +2,6 @@ import { sendMessage, sendDocument, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
 import { closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
 import { identifyIntent } from './conversation-intent.service.js';
-import 'dotenv/config';
 
 const processIncomingMessage = async (payload) => {
   try {
@@ -60,7 +59,7 @@ const processIncomingMessage = async (payload) => {
 
     if (intent === "send_pdf") {
       console.log("El usuario solicitó un PDF.");
-      await sendDocument(from, process.env.PDF_FILE, "Planes_CROV.pdf");
+      await sendDocument(from, "https://drive.google.com/file/d/1t-ZnwnMgdWnXXxooskeGFa0lXPiHUxvF/view?usp=drive_link", "Planes_CROV.pdf");
       return;
     }
 
