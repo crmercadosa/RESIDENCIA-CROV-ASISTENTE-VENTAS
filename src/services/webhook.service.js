@@ -1,6 +1,6 @@
 import { sendMessage, sendDocument, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
-import { isAwaitingPdf, clearAwaitingPdf, getPendingPdf, closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
+import { isAwaitingPdf, clearAwaitingPdf, setAwaitingPdf, closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
 import { identifyIntent } from './conversation-intent.service.js';
 
 const processIncomingMessage = async (payload) => {
