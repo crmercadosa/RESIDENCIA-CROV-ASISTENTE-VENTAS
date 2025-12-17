@@ -90,7 +90,7 @@ export const generateResponse = async (phone, incomingMessage) => {
                           - "Estos son nuestros planes y precios"
                           - "Claro, te comparto la informacion de nuestros planes y precios"
                           - "Con gusto, aqui tienes los detalles de nuestros planes y precios"
-                          - No expliques los planes.
+                          - No expliques los planes detalladamente, solamente escribe un mensaje parecido a los anteriores.
                           - Siempre amable y profesional, y continua enfocado en generar la venta.
           `
         },
