@@ -32,7 +32,9 @@ export const identifyIntent = async (message) => {
         content: `
                   Eres un clasificador de intención.
                   Responde SOLO:
-                  - plans_info - si el mensaje pregunta por informacion detallada de los planes, paquetes, precios o servicios.
+                  - plans_info - si el mensaje muestra interés por informacion detallada de los planes, paquetes, precios o servicios.
+                  - puntocrov_web - si el mensaje muestra interés en el PUNTO DE VENTA WEB.
+                  - puntocrov_escritorio - si el mensaje muestra interés en el PUNTO DE VENTA DE ESCRITORIO.
                   - end_conversation - si el mensaje indica que la persona quiere terminar la conversación.
                   - continue
                   - unknown

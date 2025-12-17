@@ -1,6 +1,6 @@
 import { sendMessage, sendDocument, sendImage, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
-import { isAwaitingPdf, clearAwaitingPdf, setAwaitingPdf, closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
+import { closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
 import { identifyIntent } from './conversation-intent.service.js';
 
 const processIncomingMessage = async (payload) => {
@@ -45,30 +45,6 @@ const processIncomingMessage = async (payload) => {
       console.log("Reabriendo conversación...");
     }
 
-    const lowerText = text.toLowerCase();
-
-    if (isAwaitingPdf(from)) {
-      if (["si", "sí", "claro", "ok", "por favor"].some(w => lowerText.includes(w))) {
-        await sendDocument(
-          from,
-          "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd",
-          "Planes_CROV.pdf"
-        );
-
-        clearAwaitingPdf(from);
-        updateConversationActivity(from);
-        return;
-      }
-
-      if (["no", "no gracias", "nop"].some(w => lowerText.includes(w))) {
-        clearAwaitingPdf(from);
-        await sendMessage(from, "Perfecto ¿Hay algo más en lo que pueda ayudarte?");
-        updateConversationActivity(from);
-        return;
-      }
-    }
-
-
     // Identificar intención del mensaje
     const intent = await identifyIntent(text);
 
@@ -90,6 +66,13 @@ const processIncomingMessage = async (payload) => {
       return;
     }
 
+    if (intent === "puntocrov_web") {
+      updateConversationActivity(from);
+      const aiResponse = await generateResponse(from, text);
+      await sendMessage(from, aiResponse);
+      await sendDocument(from, "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd", "CROV_Punto_de_Venta_Web.pdf");
+
+    }
 
     updateConversationActivity(from);
 
