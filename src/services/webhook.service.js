@@ -67,7 +67,7 @@ const processIncomingMessage = async (payload) => {
     }
 
     if (intent === "puntocrov_web") {
-      console.log("Usuario interesado en Punto de Venta de Escritorio");
+      console.log("Usuario interesado en Punto de Venta de web");
       updateConversationActivity(from);
       const aiResponse = await generateResponse(from, text);
       await sendMessage(from, aiResponse);
