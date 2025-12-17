@@ -85,7 +85,6 @@ const processIncomingMessage = async (payload) => {
       updateConversationActivity(from);
 
       const aiResponse = await generateResponse(from, text);
-      await sendMessage(from, aiResponse);
 
       sendImage(from, "https://digitalperformance.com.mx/wp-content/uploads/2024/09/Captura-de-pantalla-2024-09-29-121246.png", aiResponse);
       return;

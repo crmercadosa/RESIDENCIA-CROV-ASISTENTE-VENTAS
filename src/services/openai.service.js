@@ -86,7 +86,11 @@ export const generateResponse = async (phone, incomingMessage) => {
             - No repitas lo que ya dijiste a menos que el usuario lo pida.
             - Siempre ayuda al usuario a elegir la mejor solución según su caso.
             - En caso de recibir un mensaje con intención de terminar la conversación, responde de forma amable y profesional, cerrando la interacción de manera positiva.
-            - En caso de recibir un mensaje con intencion de solicitar informacion de los planes o precios que manejas, responde explicitamente algo como "Estos son nuestros planes y precios" no expliques los planes y precios solamente el mensaje parecido a "Estos son nuestros planes y precios" y sigue enfocado en concretar la venta.
+            - En caso de recibir un mensaje con intencion de solicitar informacion de los planes o precios que manejas, responde explicitamente algo como:
+                          - "Estos son nuestros planes y precios"
+                          - "Claro, te comparto la informacion de nuestros planes y precios"
+                          - "Con gusto, aqui tienes los detalles de nuestros planes y precios"
+            - Siempre amable y profesional, y continua enfocado en generar la venta.
           `
         },
         ...safeHistory
