@@ -1,4 +1,4 @@
-import { sendMessage, sendDocument, markAsRead } from './whatsapp.service.js';
+import { sendMessage, sendDocument, sendImage, markAsRead } from './whatsapp.service.js';
 import { generateResponse } from './openai.service.js';
 import { isAwaitingPdf, clearAwaitingPdf, setAwaitingPdf, closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
 import { identifyIntent } from './conversation-intent.service.js';
@@ -87,7 +87,7 @@ const processIncomingMessage = async (payload) => {
       const aiResponse = await generateResponse(from, text);
       await sendMessage(from, aiResponse);
 
-      setAwaitingPdf(from, "plans");
+      sendImage(from, "https://digitalperformance.com.mx/wp-content/uploads/2024/09/Captura-de-pantalla-2024-09-29-121246.png", aiResponse);
       return;
     }
 

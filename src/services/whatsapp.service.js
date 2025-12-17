@@ -86,6 +86,43 @@ export const sendDocument = async (to, docurl, filename) => {
   }
 };
 
+// Enviar imagen
+export const sendImage = async (to, imageUrl, caption = "") => {
+  if (!imageUrl) {
+    console.error("Intento de enviar imagen sin URL. Cancelado.");
+    return;
+  }
+
+  try {
+    const payload = {
+      messaging_product: "whatsapp",
+      to,
+      type: "image",
+      image: {
+        link: imageUrl,
+        ...(caption ? { caption } : {})
+      }
+    };
+
+    const { data } = await api.post("/messages", payload);
+    return data;
+
+  } catch (err) {
+    const metaError = err.response?.data;
+    console.error("Error enviando imagen a WhatsApp:", metaError || err.message);
+
+    if (metaError?.error?.code === 190) {
+      console.error("Token inválido o caducado. Revisa el WHATSAPP_TOKEN.");
+    }
+
+    if (metaError?.error?.code === 131056) {
+      console.error("Estás enviando mensajes demasiado rápido.");
+    }
+
+    return null;
+  }
+};
+
 
 export const markAsRead = async (messageId) => {
   if (!messageId) return;
