@@ -100,6 +100,12 @@ export const generateResponse = async (phone, incomingMessage) => {
                 - "Con gusto, aqui tienes los detalles de nuestro Punto de Venta Web"
                 - No expliques detalladamente, solamente escribe un mensaje parecido a los anteriores.
                 - Siempre amable y profesional, y continua enfocado en generar la venta o agendar la demo.
+            - En caso de recibir un mensaje con intencion de solicitar informacion sobre el PUNTO DE VENTA ESCRITORIO, responde explicitamente algo como:
+                - "Aqui tienes informacion sobre nuestro Punto de Venta"
+                - "Claro, te muestro informacion sobre nuestro Punto de Venta"
+                - "Con gusto, aqui tienes los detalles de nuestro Punto de Venta"
+                - No expliques detalladamente, solamente escribe un mensaje parecido a los anteriores.
+                - Siempre amable y profesional, y continua enfocado en generar la venta o agendar la demo.
           `
         },
         ...safeHistory

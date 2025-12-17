@@ -67,11 +67,21 @@ const processIncomingMessage = async (payload) => {
     }
 
     if (intent === "puntocrov_web") {
+      console.log("Usuario interesado en Punto de Venta de Escritorio");
       updateConversationActivity(from);
       const aiResponse = await generateResponse(from, text);
       await sendMessage(from, aiResponse);
       await sendDocument(from, "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd", "CROV_Punto_de_Venta_Web.pdf");
+      return;
+    }
 
+    if (intent === "puntocrov_escritorio") {
+      console.log("Usuario interesado en Punto de Venta de Escritorio");
+      updateConversationActivity(from);
+      const aiResponse = await generateResponse(from, text);
+      await sendMessage(from, aiResponse);
+      await sendDocument(from, "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd", "CROV_Punto_de_Venta_Web.pdf");
+      return;
     }
 
     updateConversationActivity(from);
