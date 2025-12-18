@@ -1,34 +1,93 @@
-import { sendMessage, sendDocument, sendImage, markAsRead } from './whatsapp.service.js';
+/**
+ * Webhook principal de CROV AI
+ *
+ * - Recibir eventos desde WhatsApp Cloud API
+ * - Filtrar eventos irrelevantes (read, delivered, sent)
+ * - Normalizar el número telefónico
+ * - Identificar intención del usuario
+ * - Orquestar respuestas (texto, imagen, documento)
+ * - Controlar estados de conversación (activa / cerrada)
+ *
+ * Este archivo NO genera respuestas directamente
+ * Solo coordina servicios especializados
+ */
+
+import 'dotenv/config';
+import {
+  sendMessage,
+  sendDocument,
+  sendImage,
+  markAsRead
+} from './whatsapp.service.js';
+
 import { generateResponse } from './openai.service.js';
-import { closeConversation, updateConversationActivity, isConversationClosed } from './conversation-activity.service.js';
+import {
+  closeConversation,
+  updateConversationActivity,
+  isConversationClosed
+} from './conversation-activity.service.js';
+
 import { identifyIntent } from './conversation-intent.service.js';
 
+/**
+ * Procesa mensajes entrantes desde WhatsApp
+ *
+ * @param {Object} payload - Evento recibido desde WhatsApp Cloud API
+ */
 const processIncomingMessage = async (payload) => {
   try {
+
+    /**
+     * Extraer estructura base del webhook
+     */
     const entry = payload.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
 
     if (!value) return;
 
-    // Ignorar eventos tipo "sent", "delivered", "read"
+    /**
+     * Ignorar eventos de estado
+     * WhatsApp envía:
+     * - sent
+     * - delivered
+     * - read
+     * Estos NO deben procesarse como mensajes
+     */
     const status = value.statuses?.[0];
     if (status) return;
 
+    /**
+     * Obtener mensaje entrante
+     */
     const message = value.messages?.[0];
     if (!message) return;
-    
-    // Normalizar número de teléfono (por el momento solo México)
+
+    /**
+     * Normalizar número de teléfono
+     * - Limpia caracteres
+     * - Corrige formato Android
+     * - Asegura prefijo MX (+52)
+     */
     const from = normalizePhone(message.from);
 
-    // Validar que el tipo de mensaje que llega sea de texto
+    /**
+     * Validar tipo de mensaje
+     * CROV AI solo procesa texto por ahora
+     */
     const messageType = message.type;
     if (messageType !== 'text') {
-        await markAsRead(message.id);
-        await sendMessage(from, "Actualmente solo puedo procesar mensajes de texto. Por favor, envíame un mensaje de texto para que pueda ayudarte.");
+      await markAsRead(message.id);
+      await sendMessage(
+        from,
+        "Actualmente solo puedo procesar mensajes de texto. Por favor, envíame un mensaje de texto para que pueda ayudarte."
+      );
       return;
     }
 
+    /**
+     * Obtener datos del contacto
+     */
     const contact = value.contacts?.[0];
     const name = contact?.profile?.name ?? "Desconocido";
     const text = message.text?.body;
@@ -37,53 +96,93 @@ const processIncomingMessage = async (payload) => {
 
     console.log(`Mensaje recibido de ${name} (${from}): ${text}`);
 
-    // Marcar como leído
+    /**
+     * Marcar mensaje como leído
+     */
     await markAsRead(message.id);
 
-    // Si ya estaba cerrada, reabrir automáticamente
+    /**
+     * Verificar estado de conversación
+     * Si estaba cerrada, se reabre automáticamente
+     */
     if (isConversationClosed(from)) {
       console.log("Reabriendo conversación...");
     }
 
-    // Identificar intención del mensaje
+    /**
+     * Identificar intención del mensaje
+     * Esta capa decide QUÉ quiere el usuario
+     */
     const intent = await identifyIntent(text);
 
+    /**
+     * Intención: terminar conversación
+     */
     if (intent === "end_conversation") {
       if (!isConversationClosed(from)) {
         closeConversation(from);
+
         const aiResponse = await generateResponse(from, text);
         await sendMessage(from, aiResponse);
       }
       return;
     }
 
+    /**
+     * Intención: información de planes
+     */
     if (intent === "plans_info") {
       updateConversationActivity(from);
 
       const aiResponse = await generateResponse(from, text);
 
-      sendImage(from, "https://digitalperformance.com.mx/wp-content/uploads/2024/09/Captura-de-pantalla-2024-09-29-121246.png", aiResponse);
+      // Se envía imagen + copy generado por IA
+      sendImage(from, process.env.TEST_IMAGE_URL, aiResponse);
       return;
     }
 
+    /**
+     * Intención: Punto de Venta Web
+     */
     if (intent === "puntocrov_web") {
-      console.log("Usuario interesado en Punto de Venta de web");
+      console.log("Usuario interesado en Punto de Venta Web");
+
       updateConversationActivity(from);
+
       const aiResponse = await generateResponse(from, text);
       await sendMessage(from, aiResponse);
-      await sendDocument(from, "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd", "CROV_Punto_de_Venta_Web.pdf");
+
+      await sendDocument(
+        from,
+        process.env.TEST_PDF_URL,
+        "CROV_Punto_de_Venta_Web.pdf"
+      );
       return;
     }
 
+    /**
+     * Intención: Punto de Venta Escritorio
+     */
     if (intent === "puntocrov_escritorio") {
-      console.log("Usuario interesado en Punto de Venta de Escritorio");
+      console.log("Usuario interesado en Punto de Venta Escritorio");
+
       updateConversationActivity(from);
+
       const aiResponse = await generateResponse(from, text);
       await sendMessage(from, aiResponse);
-      await sendDocument(from, "https://firebasestorage.googleapis.com/v0/b/edunote-ittepic.appspot.com/o/ejemplo_crov.pdf?alt=media&token=4813b0cc-2462-4c54-b4e5-31a4579ec1dd", "CROV_POS_Escritorio.pdf");
+
+      await sendDocument(
+        from,
+        process.env.TEST_PDF_URL,
+        "CROV_POS_Escritorio.pdf"
+      );
       return;
     }
 
+    /**
+     * Flujo general
+     * Mensajes sin intención específica
+     */
     updateConversationActivity(from);
 
     const aiResponse = await generateResponse(from, text);
@@ -94,21 +193,32 @@ const processIncomingMessage = async (payload) => {
   }
 };
 
+
+/**
+ * Normaliza números telefónicos para WhatsApp
+ * Actualmente solo soporta normalizacion de numeros que son de México
+ *
+ * - Elimina caracteres no numéricos
+ * - Corrige formato Android (521)
+ * - Agrega prefijo México por default
+ *
+ * @param {string} num
+ * @returns {string} teléfono en formato +52XXXXXXXXXX
+ */
 export const normalizePhone = (num = "") => {
   num = num.replace(/\D/g, "");
 
-  // Quitar 521 cuando viene de Android "envía como SMS"
   if (num.startsWith("521") && num.length === 13) {
     num = "52" + num.slice(3);
   }
 
-  // Si no tiene país → agregar México por default
   if (num.length === 10) {
     num = "52" + num;
   }
 
   return "+" + num;
 };
+
 
 export default {
   processIncomingMessage
