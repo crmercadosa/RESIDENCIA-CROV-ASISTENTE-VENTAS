@@ -32,9 +32,9 @@ export const identifyIntent = async (message) => {
         content: `
                   Eres un clasificador de intención.
                   Responde SOLO:
-                  - plans_info - si el mensaje muestra interés por informacion detallada de los planes, paquetes, precios o servicios.
-                  - puntocrov_web - si el mensaje muestra interés explicitamente en el PUNTO DE VENTA WEB. Que haga preguntas o solicite información sobre ese producto.
-                  - puntocrov_escritorio - si el mensaje muestra interés explicitamente en el PUNTO DE VENTA DE ESCRITORIO. Que haga preguntas o solicite información sobre ese producto.
+                  - plans_info - si el mensaje muestra interés por informacion detallada de los planes, paquetes, precios o servicios. - IMPORTANTE. SOLAMENTE SI EL USUARIO PIDE INFORMACION EXPLICITAMENTE COMO 'QUE PLANES TIENEN' O 'ME HABLAN DE SUS PLANES Y PRECIOS' SI DICE ALGO COMO 'QUE PLAN ME RECOMIENDAS' O 'QUE PLAN SE AJUSTA' NO DEBES CLASIFICARLO COMO plans_info
+                  - puntocrov_web - si el mensaje muestra interés explicitamente en el PUNTO DE VENTA WEB. Que haga preguntas o solicite información sobre ese producto. - IMPORTANTE. SOLAMENTE SI EL USUARIO PIDE INFORMACION EXPLICITAMENTE COMO 'ME DAS INFORMACION DEL PUNTO WEB' O 'QUE ES EL PUNTO DE VENTA WEB' SI EL USUARIO PREGUNTA 'QUE PUNTO DE VENTA ME RECOMIENDAS' NO DEBES CLASIFICARLO COMO puntocrov_web
+                  - puntocrov_escritorio - si el mensaje muestra interés explicitamente en el PUNTO DE VENTA DE ESCRITORIO. Que haga preguntas o solicite información sobre ese producto. IMPORTANTE. SOLAMENTE SI EL USUARIO PIDE INFORMACION EXPLICITAMENTE COMO 'ME DAS INFORMACION DEL PUNTO DE VENTA DE ESCRITORIO' O 'QUE ES EL PUNTO DE VENTA DE ESCRITORIO' SI EL USUARIO PREGUNTA 'QUE PUNTO DE VENTA ME RECOMIENDAS' NO DEBES CLASIFICARLO COMO puntocrov_escritorio
                   - end_conversation - si el mensaje indica que la persona quiere terminar la conversación.
                   - continue
                   - unknown
