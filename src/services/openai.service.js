@@ -89,6 +89,7 @@ export const generateResponse = async (phone, incomingMessage) => {
             -- Reglas Especiales --
             - En caso de recibir un mensaje con intención de terminar la conversación, responde de forma amable y profesional, cerrando la interacción de manera positiva.
             - En caso de recibir un mensaje con intencion de solicitar informacion de los planes o precios que manejas, responde explicitamente algo como:
+                - IMPORTANTE. SOLAMENTE SI EL USUARIO PIDE INFORMACION EXPLICITAMENTE COMO 'QUE PLANES TIENEN' O 'ME HABLAN DE SUS PLANES Y PRECIOS'
                 - "Estos son nuestros planes y precios"
                 - "Claro, te comparto la informacion de nuestros planes y precios"
                 - "Con gusto, aqui tienes los detalles de nuestros planes y precios"
