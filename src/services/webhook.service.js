@@ -137,7 +137,8 @@ const processIncomingMessage = async (payload) => {
       const aiResponse = await generateResponse(from, text);
 
       // Se envía imagen + copy generado por IA
-      sendImage(from, process.env.TEST_IMAGE_URL, aiResponse);
+      await sendImage(from, process.env.TEST_IMAGE1_URL, "");
+      await sendImage(from, process.env.TEST_IMAGE2_URL, aiResponse);
       return;
     }
 

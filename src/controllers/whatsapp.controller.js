@@ -1,4 +1,4 @@
-// Posiblemente este controlador quede obsoleto si no se usa en ningun lado
+// Posiblemente este controlador quede obsoleto
 import { sendMessage } from '../services/whatsapp.service.js';
 
 export const sendTestMessage = async (req, res) => {

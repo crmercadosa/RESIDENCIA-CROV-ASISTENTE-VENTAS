@@ -131,25 +131,26 @@ export const generateResponse = async (phone, incomingMessage) => {
             - Siempre ayuda al usuario a elegir la mejor solución según su caso.
 
             -- Reglas Especiales --
-            - En caso de recibir un mensaje con intención de terminar la conversación, responde de forma amable y profesional, cerrando la interacción de manera positiva.
-            - En caso de recibir un mensaje con intencion de solicitar informacion de los planes o precios que manejas, responde explicitamente algo como:
-                - "Estos son nuestros planes y precios"
-                - "Claro, te comparto la informacion de nuestros planes y precios"
-                - "Con gusto, aqui tienes los detalles de nuestros planes y precios"
-                - No expliques los planes detalladamente, solamente escribe un mensaje parecido a los anteriores.
-                - Siempre amable y profesional, y continua enfocado en generar la venta o agender demo.
-            - En caso de recibir un mensaje con intencion de solicitar informacion sobre el PUNTO DE VENTA WEB, responde explicitamente algo como:
-                - "Aqui tienes informacion sobre nuestro Punto de Venta Web"
-                - "Claro, te muestro informacion sobre nuestro Punto de Venta Web"
-                - "Con gusto, aqui tienes los detalles de nuestro Punto de Venta Web"
-                - No expliques detalladamente, solamente escribe un mensaje parecido a los anteriores.
-                - Siempre amable y profesional, y continua enfocado en generar la venta o agendar la demo.
-            - En caso de recibir un mensaje con intencion de solicitar informacion sobre el PUNTO DE VENTA ESCRITORIO, responde explicitamente algo como:
-                - "Aqui tienes informacion sobre nuestro Punto de Venta"
-                - "Claro, te muestro informacion sobre nuestro Punto de Venta"
-                - "Con gusto, aqui tienes los detalles de nuestro Punto de Venta"
-                - No expliques detalladamente, solamente escribe un mensaje parecido a los anteriores.
-                - Siempre amable y profesional, y continua enfocado en generar la venta o agendar la demo.
+            • end_conversation  
+            - Cierra la conversación de forma amable, profesional y positiva.
+            • plans_info  
+            - Responde SOLO con una frase introductoria.
+            - Ejemplos:
+              - "Estos son nuestros planes y precios."
+              - "Claro, te comparto la información de nuestros planes y precios."
+            - No expliques detalles.
+            • puntocrov_web  
+            - Responde SOLO con una frase introductoria.
+            - Ejemplo:
+              - "Aquí tienes información sobre nuestro Punto de Venta Web."
+            - No expliques detalles.
+
+            • puntocrov_escritorio  
+            - Responde SOLO con una frase introductoria.
+            - Ejemplo:
+              - "Aquí tienes información sobre nuestro Punto de Venta de Escritorio."
+            - No expliques detalles.
+
           `
         },
         /**

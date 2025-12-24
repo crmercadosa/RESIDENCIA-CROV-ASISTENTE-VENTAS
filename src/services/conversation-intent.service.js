@@ -63,7 +63,7 @@ export const identifyIntent = async (message) => {
             • "¿Me puedes hablar de sus precios?"
             • "Información de los planes"
 
-            ⚠️ NO clasificar como plans_info si el usuario pregunta:
+            ! NO clasificar como plans_info si el usuario pregunta:
             • "¿Qué plan me recomiendas?"
             • "¿Cuál se ajusta mejor a mi negocio?"
 
@@ -74,7 +74,7 @@ export const identifyIntent = async (message) => {
             • "¿Qué es el punto de venta web?"
             • "Dame información del punto web"
 
-            ⚠️ NO clasificar si la pregunta es de recomendación.
+            ! NO clasificar si la pregunta es de recomendación.
 
           - puntocrov_escritorio
             Si el usuario solicita EXPLÍCITAMENTE información
@@ -83,7 +83,17 @@ export const identifyIntent = async (message) => {
             • "¿Qué es el punto de venta de escritorio?"
             • "Información del POS de escritorio"
 
-            ⚠️ NO clasificar si la pregunta es de recomendación.
+            ! NO clasificar si la pregunta es de recomendación.
+            
+          - agendar_demo
+            Si el usuario solicita EXPLÍCITAMENTE agendar o una demostración
+            de cualquier sistema.
+            Ejemplos válidos:
+            • "Quiero agendar una demo"
+            • "Me gustaría una demostración del sistema"
+            • "Como puedo agendar una demo?"
+
+            ! NO clasificar si la pregunta es de recomendación. 
 
           - end_conversation
             Si el usuario expresa intención clara de finalizar
