@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model asistentes {
+  id_asistente   BigInt      @id @default(autoincrement())
+  id_sucursal    BigInt?
+  tipo           String?     @db.Text
+  estado         String?     @db.Text
+  email          String      @unique(map: "email") @db.VarChar(255)
+  password_hash  String      @db.VarChar(255)
+  fecha_creacion DateTime?   @default(now()) @db.DateTime(0)
+  sucursales     sucursales? @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: Cascade, onUpdate: NoAction, map: "asistentes_ibfk_1")
+  prompts        prompts[]
+
+  @@index([id_sucursal], map: "id_sucursal")
+}
+
+model canales {
+  id_canal          BigInt      @id @default(autoincrement())
+  id_sucursal       BigInt?
+  tipo              String?     @db.Text
+  numero_telefonico String?     @db.Text
+  provider_id       String?     @db.Text
+  sucursales        sucursales? @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: Cascade, onUpdate: NoAction, map: "canales_ibfk_1")
+
+  @@index([id_sucursal], map: "id_sucursal")
+}
+
+model lead_prospectos {
+  id_lead     BigInt      @id @default(autoincrement())
+  id_sucursal BigInt?
+  nombre      String?     @db.Text
+  telefono    String?     @db.Text
+  fuente      String?     @db.Text
+  etapa       String?     @db.Text
+  sucursales  sucursales? @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: Cascade, onUpdate: NoAction, map: "lead_prospectos_ibfk_1")
+  mensajes    mensajes[]
+
+  @@index([id_sucursal], map: "id_sucursal")
+}
+
+model mensajes {
+  id_mensaje      BigInt           @id @default(autoincrement())
+  id_lead         BigInt?
+  rol             String?          @db.Text
+  contenido       String?          @db.Text
+  tipo            mensajes_tipo?   @default(texto)
+  fecha_envio     DateTime?        @default(now()) @db.DateTime(0)
+  lead_prospectos lead_prospectos? @relation(fields: [id_lead], references: [id_lead], onDelete: Cascade, onUpdate: NoAction, map: "mensajes_ibfk_1")
+
+  @@index([id_lead], map: "id_lead")
+}
+
+model prompt_atributos {
+  id_atributo    BigInt  @id @default(autoincrement())
+  id_prompt      BigInt
+  clave_variable String? @db.VarChar(100)
+  pregunta       String? @db.Text
+  respuesta      String  @db.Text
+  prompts        prompts @relation(fields: [id_prompt], references: [id_prompt], onDelete: Cascade, onUpdate: NoAction, map: "prompt_atributos_ibfk_1")
+
+  @@index([id_prompt], map: "id_prompt")
+}
+
+model prompts {
+  id_prompt        BigInt             @id @default(autoincrement())
+  id_asistente     BigInt
+  titulo           String?            @db.VarChar(255)
+  objetivo_negocio String?            @db.Text
+  prompt_final     String             @db.Text
+  fecha_creacion   DateTime?          @default(now()) @db.DateTime(0)
+  prompt_atributos prompt_atributos[]
+  asistentes       asistentes         @relation(fields: [id_asistente], references: [id_asistente], onDelete: Cascade, onUpdate: NoAction, map: "prompts_ibfk_1")
+
+  @@index([id_asistente], map: "id_asistente")
+}
+
+model sucursales {
+  id_sucursal        BigInt            @id @default(autoincrement())
+  nombre_negocio     String?           @db.Text
+  giro               String?           @db.Text
+  ciudad             String?           @db.Text
+  horarios           String?           @db.Text
+  url_redes_sociales String?           @db.Text
+  idioma             String?           @db.Text
+  tonos_preferidos   String?           @db.Text
+  estado             String?           @db.VarChar(15)
+  asistentes         asistentes[]
+  canales            canales[]
+  lead_prospectos    lead_prospectos[]
+}
+
+enum mensajes_tipo {
+  texto
+  imagen
+  boton
+  archivo
+}

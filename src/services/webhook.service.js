@@ -28,6 +28,7 @@ import {
 } from './conversation-activity.service.js';
 
 import { identifyIntent } from './conversation-intent.service.js';
+import { findActiveSucursalByPhone } from './prisma-queries.service.js';
 
 /**
  * Procesa mensajes entrantes desde WhatsApp
@@ -100,6 +101,18 @@ const processIncomingMessage = async (payload) => {
      * Marcar mensaje como leído
      */
     await markAsRead(message.id);
+
+    /**
+     * Verificar si existe una sucursal o si está activa
+     */
+    const client_phone = value.metadata?.display_phone_number;
+    const sucursal_res = await findActiveSucursalByPhone(client_phone);
+
+    if (!sucursal_res){
+      console.log("Sucursal inexistente o inactiva");
+    }
+    const {nombre_negocio} = sucursal_res.sucursales;
+    console.log("Sucursal encontrada: ",nombre_negocio)
 
     /**
      * Verificar estado de conversación
