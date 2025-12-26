@@ -10,7 +10,7 @@
  * decida qué acción ejecutar.
  */
 
-import openai from "../utils/openai.js";
+import openai from "../../config/openai.js";
 
 /**
  * Identifica la intención principal del mensaje del usuario.

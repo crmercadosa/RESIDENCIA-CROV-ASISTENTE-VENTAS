@@ -12,22 +12,21 @@
  * Solo coordina servicios especializados
  */
 
-import 'dotenv/config';
 import {
   sendMessage,
   sendDocument,
   sendImage,
   markAsRead
-} from './whatsapp.service.js';
+} from './message.service.js';
 
 import { generateResponse } from './openai.service.js';
 import {
   closeConversation,
   updateConversationActivity,
   isConversationClosed
-} from './conversation-activity.service.js';
+} from './conversation/conversation-activity.service.js';
 
-import { identifyIntent } from './conversation-intent.service.js';
+import { identifyIntent } from './conversation/conversation-intent.service.js';
 
 /**
  * Procesa mensajes entrantes desde WhatsApp

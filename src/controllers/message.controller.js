@@ -1,5 +1,5 @@
 // Posiblemente este controlador quede obsoleto
-import { sendMessage } from '../services/whatsapp.service.js';
+import { sendMessage } from '../services/message.service.js';
 
 export const sendTestMessage = async (req, res) => {
   try {
