@@ -26,3 +26,14 @@ export const findActiveSucursalByPhone = async (phone) => {
   });
 };
 
+export const getPrompt = async (sucursal_id) => {
+  return prisma.prompt.findFirst({
+    where:{
+      id_sucursal: sucursal_id
+    }, 
+    select:{
+      prompt_final: true
+    }
+  })
+};
+
