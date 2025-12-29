@@ -111,7 +111,7 @@ const processIncomingMessage = async (payload) => {
     if (!sucursal_res){
       console.log("Sucursal inexistente o inactiva");
     }
-    const {nombre_negocio} = sucursal_res.sucursales;
+    const {nombre_negocio} = sucursal_res.sucursal;
     console.log("Sucursal encontrada: ",nombre_negocio)
 
     /**

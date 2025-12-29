@@ -2,3 +2,7 @@ node_modules/
 .env
 ngrok.exe
 /src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma

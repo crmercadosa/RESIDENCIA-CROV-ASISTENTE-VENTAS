@@ -1,24 +1,28 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaMariaDb(process.env.DATABASE_URL);
+
+const prisma = new PrismaClient({adapter});
 
 export const findActiveSucursalByPhone = async (phone) => {
-  return prisma.canales.findFirst({
+  return prisma.canal.findFirst({
     where: {
       numero_telefonico: phone,
-      sucursales: {
+      sucursal: {
         is: {
           estado: 'activo'
         }
       }
     },
     select: {
-      sucursales: {
+      sucursal: {
         select: {
-          id_sucursal: true,
+          id: true,
           nombre_negocio: true
         }
       }
     }
   });
 };
+
