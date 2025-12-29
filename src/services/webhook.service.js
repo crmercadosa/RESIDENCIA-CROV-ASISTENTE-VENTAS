@@ -28,7 +28,8 @@ import {
 } from './conversation-activity.service.js';
 
 import { identifyIntent } from './conversation-intent.service.js';
-import { findActiveSucursalByPhone, getPrompt } from './prisma-queries.service.js';
+//import { findActiveSucursalByPhone, getPrompt } from './prisma-queries.service.js';
+import { getSucursalData } from './sucursal.service.js';
 
 /**
  * Procesa mensajes entrantes desde WhatsApp
@@ -102,25 +103,38 @@ const processIncomingMessage = async (payload) => {
      */
     await markAsRead(message.id);
 
-    /**
-     * Verificar si existe una sucursal o si está activa
-     */
-    const client_phone = value.metadata?.display_phone_number;
-    const sucursal_res = await findActiveSucursalByPhone(client_phone);
+    // /**
+    //  * Verificar si existe una sucursal o si está activa
+    //  */
+    // const client_phone = value.metadata?.display_phone_number;
+    // const sucursal_res = await findActiveSucursalByPhone(client_phone);
 
-    if (!sucursal_res){
+    // if (!sucursal_res){
+    //   console.log("Sucursal inexistente o inactiva");
+    //   return;
+    // }
+
+    // console.log("Sucursal encontrada: ",sucursal_res.sucursal?.nombre_negocio)
+
+    // /**
+    //  * Obtener el prompt para esa sucursal
+    //  */
+    // const prompt_res = await getPrompt(sucursal_res.sucursal?.id);
+    // //console.log(prompt_res.prompt_final);
+
+    /**
+     * Obtener datos de la sucursal 
+     */
+
+    const client_phone = value.metadata?.display_phone_number;
+
+    const sucursalData = await getSucursalData(client_phone);
+
+    if (!sucursalData){
       console.log("Sucursal inexistente o inactiva");
       return;
     }
-
-    console.log("Sucursal encontrada: ",sucursal_res.sucursal?.nombre_negocio)
-
-    /**
-     * Obtener el prompt para esa sucursal
-     */
-    const prompt_res = await getPrompt(sucursal_res.sucursal?.id);
-    //console.log(prompt_res.prompt_final);
-
+    
     /**
      * Verificar estado de conversación
      * Si estaba cerrada, se reabre automáticamente
@@ -142,7 +156,7 @@ const processIncomingMessage = async (payload) => {
       if (!isConversationClosed(from)) {
         closeConversation(from);
 
-        const aiResponse = await generateResponse(from, text);
+        const aiResponse = await generateResponse(from, text, sucursalData.prompt);
         await sendMessage(from, aiResponse);
       }
       return;
@@ -154,7 +168,7 @@ const processIncomingMessage = async (payload) => {
     if (intent === "plans_info") {
       updateConversationActivity(from);
 
-      const aiResponse = await generateResponse(from, text);
+      const aiResponse = await generateResponse(from, text, sucursalData.prompt);
 
       // Se envía imagen + copy generado por IA
       await sendImage(from, process.env.TEST_IMAGE1_URL, "");
@@ -170,7 +184,7 @@ const processIncomingMessage = async (payload) => {
 
       updateConversationActivity(from);
 
-      const aiResponse = await generateResponse(from, text);
+      const aiResponse = await generateResponse(from, text, sucursalData.prompt);
       await sendMessage(from, aiResponse);
 
       await sendDocument(
@@ -189,7 +203,7 @@ const processIncomingMessage = async (payload) => {
 
       updateConversationActivity(from);
 
-      const aiResponse = await generateResponse(from, text);
+      const aiResponse = await generateResponse(from, text, sucursalData.prompt);
       await sendMessage(from, aiResponse);
 
       await sendDocument(
@@ -206,7 +220,7 @@ const processIncomingMessage = async (payload) => {
      */
     updateConversationActivity(from);
 
-    const aiResponse = await generateResponse(from, text);
+    const aiResponse = await generateResponse(from, text, sucursalData.prompt);
     await sendMessage(from, aiResponse);
 
   } catch (err) {
