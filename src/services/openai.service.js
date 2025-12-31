@@ -13,7 +13,7 @@
  */
 
 import openai from "../utils/openai.js";
-import { addMessageToHistory, getHistory } from "./conversation-history.service.js";
+import { addMessageToHistory, getHistory } from "./conversation-services/conversation-history.service.js";
 
 /**
  * Genera una respuesta de CROV AI basada en:

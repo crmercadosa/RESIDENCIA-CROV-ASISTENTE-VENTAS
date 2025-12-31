@@ -1,15 +1,13 @@
 /**
- * Servicio de caché para datos de sucursales
+ * Servicio para datos de sucursales
  * 
- * Evita consultas repetidas a la base de datos
- * almacenando temporalmente información de sucursales activas
+ * Este servicio evita consultas repetidas a la base de datos
  */
 
-import { findActiveSucursalByPhone, getPrompt } from './prisma-queries.service.js';
+import { findActiveSucursalByPhone, getPrompt } from './prisma.service.js';
 
 /**
  * Almacén en memoria
- * Estructura: { phone: { sucursal, prompt, timestamp } }
  */
 const cache = new Map();
 
@@ -17,11 +15,11 @@ const cache = new Map();
  * Tiempo de vida del caché (30 minutos)
  * Después de este tiempo, los datos se revalidan
  */
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutos en milisegundos
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutos
 
 /**
  * Limpieza automática cada 10 minutos
- * Elimina entradas expiradas para evitar memory leaks
+ * Elimina entradas expiradas para evitar datos que no se necesiten en memoria
  */
 setInterval(() => {
   const now = Date.now();
@@ -36,13 +34,9 @@ setInterval(() => {
 /**
  * Obtiene datos de sucursal con caché
  * 
- * Flujo:
- * 1. Verifica si existe en caché y no ha expirado
- * 2. Si existe y es válido, lo retorna
- * 3. Si no existe o expiró, consulta la BD y actualiza caché
- * 
- * @param {string} phone - Número de teléfono de la sucursal
- * @returns {Object|null} { sucursal, prompt } o null si no existe
+ * - Verifica si existe en caché y no ha expirado
+ * - Si existe y es válido, lo retorna
+ * - Si no existe o expiró, consulta la BD y actualiza caché
  */
 export const getSucursalData = async (phone) => {
   const now = Date.now();
@@ -50,14 +44,14 @@ export const getSucursalData = async (phone) => {
 
   // Si existe en caché y no ha expirado
   if (cached && (now - cached.timestamp) < CACHE_TTL) {
-    console.log(`✓ Caché HIT para: ${phone}`);
+    console.log(`Caché ENCONTRADO para: ${phone}`);
     return {
       sucursal: cached.sucursal,
       prompt: cached.prompt
     };
   }
 
-  console.log(`✗ Caché MISS para: ${phone} - Consultando BD...`);
+  console.log(`Caché NO ENCONTRADO para: ${phone} - Consultando BD...`);
 
   // Consultar base de datos
   const sucursalRes = await findActiveSucursalByPhone(phone);
@@ -84,7 +78,7 @@ export const getSucursalData = async (phone) => {
   };
 
   cache.set(phone, cacheData);
-  console.log(`✓ Datos cacheados para: ${sucursalRes.sucursal.nombre_negocio}`);
+  console.log(`Datos cacheados para: ${sucursalRes.sucursal.nombre_negocio} ${sucursalRes.sucursal.id}`);
 
   return {
     sucursal: cacheData.sucursal,

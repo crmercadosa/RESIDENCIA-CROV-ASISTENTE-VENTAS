@@ -37,3 +37,18 @@ export const getPrompt = async (sucursal_id) => {
   })
 };
 
+export const getIntention = async (sucursal_id) => {
+  return prisma.intencion.findMany({
+    where:{
+      id_sucursal: sucursal_id
+    },
+    select:{
+      clave: true,
+      nombre: true,
+      descripcion: true,
+      tipo_accion: true,
+      config: true
+    }
+  });
+}
+

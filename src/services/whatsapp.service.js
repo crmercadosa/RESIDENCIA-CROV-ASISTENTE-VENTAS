@@ -6,8 +6,7 @@
  * - Marcar mensajes como leídos
  * - Manejar errores comunes (token, rate limit)
  *
- * Este servicio NO decide lógica de negocio
- * Solo ejecuta acciones sobre la API de WhatsApp
+ * Este servicio solo ejecuta acciones sobre la API de WhatsApp
  */
 
 import axios from "axios";
@@ -15,7 +14,6 @@ import axios from "axios";
 /**
  * Cliente HTTP configurado para WhatsApp Cloud API
  *
- * Usa:
  * - Versión de API configurada por entorno
  * - PHONE_NUMBER_ID de Meta
  * - Token de acceso seguro

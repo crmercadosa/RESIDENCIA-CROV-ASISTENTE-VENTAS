@@ -24,11 +24,13 @@ import { generateResponse } from './openai.service.js';
 import {
   closeConversation,
   updateConversationActivity,
-  isConversationClosed
-} from './conversation-activity.service.js';
+  isConversationClosed,
+  reopenConversation
+} from './conversation-services/conversation-activity.service.js';
 
-import { identifyIntent } from './conversation-intent.service.js';
-//import { findActiveSucursalByPhone, getPrompt } from './prisma-queries.service.js';
+import { identifyIntent } from './conversation-services/conversation-intent.service.js';
+import { getSucursalIntents } from './intent-services/intent-cache.service.js';
+import { executeIntention } from './intent-services/intent-handler.service.js';
 import { getSucursalData } from './sucursal.service.js';
 
 /**
@@ -103,25 +105,6 @@ const processIncomingMessage = async (payload) => {
      */
     await markAsRead(message.id);
 
-    // /**
-    //  * Verificar si existe una sucursal o si está activa
-    //  */
-    // const client_phone = value.metadata?.display_phone_number;
-    // const sucursal_res = await findActiveSucursalByPhone(client_phone);
-
-    // if (!sucursal_res){
-    //   console.log("Sucursal inexistente o inactiva");
-    //   return;
-    // }
-
-    // console.log("Sucursal encontrada: ",sucursal_res.sucursal?.nombre_negocio)
-
-    // /**
-    //  * Obtener el prompt para esa sucursal
-    //  */
-    // const prompt_res = await getPrompt(sucursal_res.sucursal?.id);
-    // //console.log(prompt_res.prompt_final);
-
     /**
      * Obtener datos de la sucursal 
      */
@@ -134,28 +117,30 @@ const processIncomingMessage = async (payload) => {
       console.log("Sucursal inexistente o inactiva");
       return;
     }
-    
+
+    console.log(`ID de sucursal encontrada: ${sucursalData.sucursal.id}`)
+
     /**
      * Verificar estado de conversación
      * Si estaba cerrada, se reabre automáticamente
      */
     if (isConversationClosed(from)) {
       console.log("Reabriendo conversación...");
+      reopenConversation(from);
     }
 
     /**
      * Identificar intención del mensaje
      * Esta capa decide QUÉ quiere el usuario
      */
-    const intent = await identifyIntent(text);
+    const intent = await identifyIntent(text, `${sucursalData.sucursal.id}`);
 
     /**
-     * Intención: terminar conversación
+     * Menejar intenciones predeterminadas
      */
     if (intent === "end_conversation") {
       if (!isConversationClosed(from)) {
         closeConversation(from);
-
         const aiResponse = await generateResponse(from, text, sucursalData.prompt);
         await sendMessage(from, aiResponse);
       }
@@ -163,63 +148,28 @@ const processIncomingMessage = async (payload) => {
     }
 
     /**
-     * Intención: información de planes
+     * Menejar las intenciones personalizadas para cada sucursal
      */
-    if (intent === "plans_info") {
+    const intenciones = await getSucursalIntents(`${sucursalData.sucursal.id}`);
+    const intentConfig = intenciones.find(i => i.clave === intent);
+
+    if (intentConfig){
+      console.log(`Ejecutando intención personalizada: ${intentConfig.nombre}`);
       updateConversationActivity(from);
-
-      const aiResponse = await generateResponse(from, text, sucursalData.prompt);
-
-      // Se envía imagen + copy generado por IA
-      await sendImage(from, process.env.TEST_IMAGE1_URL, "");
-      await sendImage(from, process.env.TEST_IMAGE2_URL, aiResponse);
-      return;
-    }
-
-    /**
-     * Intención: Punto de Venta Web
-     */
-    if (intent === "puntocrov_web") {
-      console.log("Usuario interesado en Punto de Venta Web");
-
-      updateConversationActivity(from);
-
-      const aiResponse = await generateResponse(from, text, sucursalData.prompt);
-      await sendMessage(from, aiResponse);
-
-      await sendDocument(
+      await executeIntention (
+        intentConfig,
         from,
-        process.env.TEST_PDF_URL,
-        "CROV_Punto_de_Venta_Web.pdf"
+        text,
+        sucursalData.prompt
       );
       return;
     }
 
     /**
-     * Intención: Punto de Venta Escritorio
-     */
-    if (intent === "puntocrov_escritorio") {
-      console.log("Usuario interesado en Punto de Venta Escritorio");
-
-      updateConversationActivity(from);
-
-      const aiResponse = await generateResponse(from, text, sucursalData.prompt);
-      await sendMessage(from, aiResponse);
-
-      await sendDocument(
-        from,
-        process.env.TEST_PDF_URL,
-        "CROV_POS_Escritorio.pdf"
-      );
-      return;
-    }
-
-    /**
-     * Flujo general
-     * Mensajes sin intención específica
+     * Si el mensaje viene sin intención específica termina en este flujo general.
+     * Aqui puden ser preguntas generales, aclaraciones, etc.
      */
     updateConversationActivity(from);
-
     const aiResponse = await generateResponse(from, text, sucursalData.prompt);
     await sendMessage(from, aiResponse);
 

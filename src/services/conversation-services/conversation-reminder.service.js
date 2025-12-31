@@ -10,8 +10,8 @@
  * eso lo controla `conversation-activity.service.js`.
  */
 
-import { sendMessage } from "./whatsapp.service.js";
-import openai from "../utils/openai.js";
+import { sendMessage } from "../whatsapp.service.js";
+import openai from "../../utils/openai.js";
 import { getHistory, addMessageToHistory } from "./conversation-history.service.js";
 
 /**
