@@ -8,10 +8,19 @@ const prisma = new PrismaClient({adapter});
 export const findActiveSucursalByPhone = async (phone) => {
   return prisma.canal.findFirst({
     where: {
-      numero_telefonico: phone,
+      tipo: 'whatsapp',
+      estado: 'activo',
+
       sucursal: {
-        is: {
-          estado: 'activo'
+        estado: 'activo'
+      },
+
+      canal_config: {
+        some: {
+          config: {
+            path: '$.whatsapp_number',
+            equals: phone
+          }
         }
       }
     },
@@ -26,10 +35,23 @@ export const findActiveSucursalByPhone = async (phone) => {
   });
 };
 
-export const getPrompt = async (sucursal_id) => {
+export const getAssistant = async (canal_id) => {
+  return prisma.asistente.findFirst({
+    where:{
+      id_canal: canal_id,
+      estado: 'activo'
+    },select:{
+      id: true,
+      nombre: true,
+    }
+  })
+
+}
+
+export const getPrompt = async (asisente_id) => {
   return prisma.prompt.findFirst({
     where:{
-      id_sucursal: sucursal_id
+      id_asistente: asisente_id
     }, 
     select:{
       prompt_final: true
@@ -37,10 +59,10 @@ export const getPrompt = async (sucursal_id) => {
   })
 };
 
-export const getIntention = async (sucursal_id) => {
+export const getIntention = async (asistente_id) => {
   return prisma.intencion.findMany({
     where:{
-      id_sucursal: sucursal_id
+      id_asistente: asistente_id
     },
     select:{
       clave: true,

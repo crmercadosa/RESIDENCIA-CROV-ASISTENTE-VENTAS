@@ -15,8 +15,6 @@
 import 'dotenv/config';
 import {
   sendMessage,
-  sendDocument,
-  sendImage,
   markAsRead
 } from './whatsapp.service.js';
 
@@ -47,6 +45,8 @@ const processIncomingMessage = async (payload) => {
     const entry = payload.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
+    if  (!value) return;
+    const phoneNumberId = value.metadata?.phone_number_id;
 
     if (!value) return;
 
@@ -81,10 +81,11 @@ const processIncomingMessage = async (payload) => {
      */
     const messageType = message.type;
     if (messageType !== 'text') {
-      await markAsRead(message.id);
+      await markAsRead(message.id, phoneNumberId);
       await sendMessage(
         from,
-        "Actualmente solo puedo procesar mensajes de texto. Por favor, envíame un mensaje de texto para que pueda ayudarte."
+        "Actualmente solo puedo procesar mensajes de texto. Por favor, envíame un mensaje de texto para que pueda ayudarte.",
+        phoneNumberId
       );
       return;
     }
@@ -103,7 +104,7 @@ const processIncomingMessage = async (payload) => {
     /**
      * Marcar mensaje como leído
      */
-    await markAsRead(message.id);
+    await markAsRead(message.id, phoneNumberId);
 
     /**
      * Obtener datos de la sucursal 
@@ -118,8 +119,6 @@ const processIncomingMessage = async (payload) => {
       return;
     }
 
-    console.log(`ID de sucursal encontrada: ${sucursalData.sucursal.id}`)
-
     /**
      * Verificar estado de conversación
      * Si estaba cerrada, se reabre automáticamente
@@ -133,7 +132,7 @@ const processIncomingMessage = async (payload) => {
      * Identificar intención del mensaje
      * Esta capa decide QUÉ quiere el usuario
      */
-    const intent = await identifyIntent(text, `${sucursalData.sucursal.id}`);
+    const intent = await identifyIntent(text, sucursalData.asistente.id);
 
     /**
      * Menejar intenciones predeterminadas
@@ -142,7 +141,7 @@ const processIncomingMessage = async (payload) => {
       if (!isConversationClosed(from)) {
         closeConversation(from);
         const aiResponse = await generateResponse(from, text, sucursalData.prompt);
-        await sendMessage(from, aiResponse);
+        await sendMessage(from, aiResponse, phoneNumberId);
       }
       return;
     }
@@ -150,17 +149,18 @@ const processIncomingMessage = async (payload) => {
     /**
      * Menejar las intenciones personalizadas para cada sucursal
      */
-    const intenciones = await getSucursalIntents(`${sucursalData.sucursal.id}`);
+    const intenciones = await getSucursalIntents(`${sucursalData.asistente.id}`);
     const intentConfig = intenciones.find(i => i.clave === intent);
 
     if (intentConfig){
       console.log(`Ejecutando intención personalizada: ${intentConfig.nombre}`);
-      updateConversationActivity(from);
+      updateConversationActivity(from, phoneNumberId);
       await executeIntention (
         intentConfig,
         from,
         text,
-        sucursalData.prompt
+        sucursalData.prompt,
+        phoneNumberId
       );
       return;
     }
@@ -169,9 +169,9 @@ const processIncomingMessage = async (payload) => {
      * Si el mensaje viene sin intención específica termina en este flujo general.
      * Aqui puden ser preguntas generales, aclaraciones, etc.
      */
-    updateConversationActivity(from);
+    updateConversationActivity(from, phoneNumberId);
     const aiResponse = await generateResponse(from, text, sucursalData.prompt);
-    await sendMessage(from, aiResponse);
+    await sendMessage(from, aiResponse, phoneNumberId);
 
   } catch (err) {
     console.error("Error procesando mensaje:", err);
@@ -203,7 +203,6 @@ export const normalizePhone = (num = "") => {
 
   return "+" + num;
 };
-
 
 export default {
   processIncomingMessage

@@ -46,7 +46,7 @@ const buildSystemPrompt = (intenciones) => {
 
 }
 
-export const identifyIntent = async (message, sucursal_id) => {
+export const identifyIntent = async (message, asistente_id) => {
   try {
     /**
      * Validación básica:
@@ -55,7 +55,7 @@ export const identifyIntent = async (message, sucursal_id) => {
      */
     if (!message || !message.trim()) return "unknown";
 
-    const intenciones = await getSucursalIntents(sucursal_id)
+    const intenciones = await getSucursalIntents(asistente_id)
 
     const systemPrompt = buildSystemPrompt(intenciones);
 

@@ -1,13 +1,15 @@
 import {sendMessage, sendDocument, sendImage} from '../whatsapp.service.js'
 import {generateResponse} from '../openai.service.js';
 
-export const executeIntention = async (intentConfig, from, text, prompt) => {
+export const executeIntention = async (intentConfig, from, text, prompt, phoneNumberId) => {
     const {tipo_accion, config} = intentConfig;
 
+
+    // Por el momento solo soporta 
     switch(tipo_accion){
         case "send_document":
             const docResponse = await generateResponse(from, text, prompt);
-            await sendMessage(from, docResponse);
+            await sendMessage(from, docResponse, phoneNumberId);
 
             console.log(`
                 Para: ${from}
@@ -17,7 +19,8 @@ export const executeIntention = async (intentConfig, from, text, prompt) => {
             await sendDocument(
                 from, 
                 config.document_url,
-                config.filename || 'documento'
+                config.filename || 'documento',
+                phoneNumberId
             );
             break;
         
@@ -29,28 +32,14 @@ export const executeIntention = async (intentConfig, from, text, prompt) => {
                 for (let i = 0; i < config.images.length; i++) {
                 const img = config.images[i];
                 const caption = i === config.images.length - 1 ? imgResponse : "";
-                await sendImage(from, img.url, caption);
+                await sendImage(from, img.url, caption, phoneNumberId);
                 }
             }
             break;
         
         case "send_text":
             const txtResponse = await generateResponse(from, text, prompt);
-            await sendMessage(from, txtResponse);
-            break;
-        
-        case "send_template":
-            // Enviar mensaje predefinido + opcional IA
-            if (configuracion.use_ai) {
-                const aiResponse = await generateResponse(from, text, prompt);
-                await sendMessage(from, aiResponse);
-            } else {
-                await sendMessage(from, configuracion.template_message);
-            }
-            break;
-        
-        case "custom":
-            //Para futuras actualizaciones, podría abarcar mas casos personalizados
+            await sendMessage(from, txtResponse, phoneNumberId);
             break;
         
         default:

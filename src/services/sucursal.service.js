@@ -4,7 +4,7 @@
  * Este servicio evita consultas repetidas a la base de datos
  */
 
-import { findActiveSucursalByPhone, getPrompt } from './prisma.service.js';
+import { findActiveSucursalByPhone, getAssistant, getPrompt } from './prisma.service.js';
 
 /**
  * Almacén en memoria
@@ -56,6 +56,8 @@ export const getSucursalData = async (phone) => {
   // Consultar base de datos
   const sucursalRes = await findActiveSucursalByPhone(phone);
 
+  console.log(`Sucursal encontrada en BD: ${sucursalRes?.sucursal?.nombre_negocio || 'Ninguna'}`);
+
   if (!sucursalRes?.sucursal) {
     // Si no existe, cachear como null por un tiempo corto (5 min)
     // Evita martillar la BD con números inválidos
@@ -67,13 +69,21 @@ export const getSucursalData = async (phone) => {
     return null;
   }
 
+  //Verificar que existe un asistente activo para ese canal de comunicacion
+  const assistantRes =  await getAssistant(sucursalRes.sucursal.id);
+
+  console.log(`Asistente encontrado en BD: ${assistantRes?.nombre || 'Ninguno'}`);
+
   // Obtener prompt
-  const promptRes = await getPrompt(sucursalRes.sucursal.id);
+  const promptRes = await getPrompt(assistantRes.id);
+
+  console.log(`Prompt obtenido de BD para asistente ${assistantRes.nombre}: ${promptRes?.prompt_final}`);
 
   // Guardar en caché
   const cacheData = {
     sucursal: sucursalRes.sucursal,
     prompt: promptRes?.prompt_final || null,
+    asistente: assistantRes || null,
     timestamp: now
   };
 
@@ -82,7 +92,8 @@ export const getSucursalData = async (phone) => {
 
   return {
     sucursal: cacheData.sucursal,
-    prompt: cacheData.prompt
+    prompt: cacheData.prompt,
+    asistente: cacheData.asistente
   };
 };
 

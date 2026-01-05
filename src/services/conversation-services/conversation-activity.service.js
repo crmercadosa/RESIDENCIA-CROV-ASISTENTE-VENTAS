@@ -52,6 +52,7 @@ const getConversation = (phone) => {
       lastActivity: Date.now(),    // Timestamp de la última interacción
       timeoutId: null,             // Timeout principal de inactividad
       cleanupTimeoutId: null,      // Timeout para limpieza total
+      phoneNumberId: null          // ID del número de WhatsApp asociado
     });
   }
   return conversations.get(phone);
@@ -143,8 +144,9 @@ export const reopenConversation = (phone) => {
  * Actualiza la actividad de la conversación.
  * Se debe llamar cada vez que el usuario envía un mensaje válido.
  */
-export const updateConversationActivity = (phone) => {
+export const updateConversationActivity = (phone, phoneNumberId) => {
   const data = getConversation(phone);
+  data.phoneNumberId = phoneNumberId;
 
   // Si estaba cerrada, se reabre automáticamente
   if (data.closed) {
@@ -175,12 +177,19 @@ const handleInactivity = async (phone) => {
   const data = conversations.get(phone);
   if (!data || !data.active) return;
 
+  const phoneNumberId = data.phoneNumberId;
+
+  if (!phoneNumberId) {
+  console.warn(`phoneNumberId no definido para ${phone}`);
+    return;
+  }
+
   // No hacer nada si ya está cerrada
   if (data.closed) return;
 
   // Si ya se enviaron todos los recordatorios
   if (data.remindersSent >= MAX_REMINDERS) {
-    await sendFinalMessage(phone);
+    await sendFinalMessage(phone, phoneNumberId);
     data.active = false;
     data.closed = true;
     scheduleCleanup(phone);
@@ -189,7 +198,7 @@ const handleInactivity = async (phone) => {
 
   try {
     // Enviar recordatorio amistoso
-    await sendReminder(phone);
+    await sendReminder(phone, phoneNumberId);
 
     data.remindersSent++;
 

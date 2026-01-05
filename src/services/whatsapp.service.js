@@ -15,17 +15,20 @@ import axios from "axios";
  * Cliente HTTP configurado para WhatsApp Cloud API
  *
  * - Versión de API configurada por entorno
- * - PHONE_NUMBER_ID de Meta
+ * - phoneNumberId de Meta
  * - Token de acceso seguro
  */
-const api = axios.create({
-  baseURL: `https://graph.facebook.com/${process.env.WHATSAPP_VERSION}/${process.env.PHONE_NUMBER_ID}`,
-  headers: {
-    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-    "Content-Type": "application/json"
-  },
-  timeout: 10000 // evita colgar el proceso si Meta no responde
-});
+
+const createWhatsappClient = async (phoneNumberId) => {
+  return axios.create({
+    baseURL: `https://graph.facebook.com/${process.env.WHATSAPP_VERSION}/${phoneNumberId}`,
+    headers: {
+      Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    timeout: 10000 // evita colgar el proceso si Meta no responde
+  });
+}
 
 /**
  * Envía un mensaje de texto simple por WhatsApp
@@ -33,7 +36,9 @@ const api = axios.create({
  * @param {string} to - Número destino en formato internacional (+52...)
  * @param {string} message - Texto a enviar
  */
-export const sendMessage = async (to, message) => {
+export const sendMessage = async (to, message, phoneNumberId) => {
+  
+  const api = await createWhatsappClient(phoneNumberId);
 
   // Validación defensiva
   if (!message || message.trim() === "") {
@@ -84,7 +89,9 @@ export const sendMessage = async (to, message) => {
  * @param {string} docurl - URL pública del documento
  * @param {string} filename - Nombre visible del archivo
  */
-export const sendDocument = async (to, docurl, filename) => {
+export const sendDocument = async (to, docurl, filename, phoneNumberId) => {
+
+    const api = await createWhatsappClient(phoneNumberId);
 
   if (!docurl || !filename) {
     console.error("Intento de enviar documento sin datos. Cancelado.");
@@ -133,7 +140,9 @@ export const sendDocument = async (to, docurl, filename) => {
  * @param {string} imageUrl - URL pública de la imagen
  * @param {string} caption - Texto opcional de acompañamiento
  */
-export const sendImage = async (to, imageUrl, caption = "") => {
+export const sendImage = async (to, imageUrl, caption = "", phoneNumberId) => {
+
+  const api = await createWhatsappClient(phoneNumberId);
 
   if (!imageUrl) {
     console.error("Intento de enviar imagen sin URL. Cancelado.");
@@ -181,7 +190,9 @@ export const sendImage = async (to, imageUrl, caption = "") => {
  *
  * @param {string} messageId - ID del mensaje recibido
  */
-export const markAsRead = async (messageId) => {
+export const markAsRead = async (messageId, phoneNumberId) => {
+  
+  const api = await createWhatsappClient(phoneNumberId);
   if (!messageId) return;
 
   try {

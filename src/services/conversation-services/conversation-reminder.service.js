@@ -21,7 +21,7 @@ import { getHistory, addMessageToHistory } from "./conversation-history.service.
  * @param {string} phone - Número de teléfono del prospecto
  * @returns {Promise<string>} - Texto del recordatorio enviado
  */
-export const sendReminder = async (phone) => {
+export const sendReminder = async (phone, phoneNumberId) => {
 
   /**
    * Se recupera el historial de conversación para:
@@ -86,7 +86,7 @@ export const sendReminder = async (phone) => {
   /**
    * Se envía el recordatorio por WhatsApp
    */
-  await sendMessage(phone, reminder);
+  await sendMessage(phone, reminder, phoneNumberId);
 
   return reminder;
 };
@@ -103,9 +103,9 @@ export const sendReminder = async (phone) => {
  *
  * @param {string} phone - Número del prospecto
  */
-export const sendFinalMessage = async (phone) => {
+export const sendFinalMessage = async (phone, phoneNumberId) => {
   const text =
     "Parece que ya no estás disponible. Si necesitas algo más estaré aquí para ayudarte. ¡Que tengas un excelente día!";
 
-  await sendMessage(phone, text);
+  await sendMessage(phone, text, phoneNumberId);
 };

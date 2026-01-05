@@ -11,8 +11,8 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 hora
 /**
  * Obtener las intenciones
  */
-export const getSucursalIntents = async (sucursal_id) => {
-    const cached = cache.get(sucursal_id);
+export const getSucursalIntents = async (asistente_id) => {
+    const cached = cache.get(asistente_id);
     const now = Date.now();
 
     if (cached && (now - cached.timestamp) < CACHE_TTL){
@@ -20,9 +20,9 @@ export const getSucursalIntents = async (sucursal_id) => {
     }
 
     //Consultar a la BD
-    const intents = await getIntention (sucursal_id);
+    const intents = await getIntention (asistente_id);
 
-    cache.set(sucursal_id,{
+    cache.set(asistente_id,{
         intents,
         timestamp: now
     });
@@ -30,6 +30,6 @@ export const getSucursalIntents = async (sucursal_id) => {
     return intents;
 };
 
-export const invalidateIntentionCache = (sucursal_id) => {
-    cache.delete(sucursal_id);
+export const invalidateIntentionCache = (asistente_id) => {
+    cache.delete(asistente_id);
 };
