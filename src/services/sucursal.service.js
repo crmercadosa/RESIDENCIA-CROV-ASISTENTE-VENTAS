@@ -47,7 +47,8 @@ export const getSucursalData = async (phone) => {
     console.log(`Caché ENCONTRADO para: ${phone}`);
     return {
       sucursal: cached.sucursal,
-      prompt: cached.prompt
+      prompt: cached.prompt,
+      asistente: cached.asistente
     };
   }
 
@@ -64,6 +65,7 @@ export const getSucursalData = async (phone) => {
     cache.set(phone, {
       sucursal: null,
       prompt: null,
+      asistente: null,
       timestamp: now - (CACHE_TTL - 5 * 60 * 1000) // Expira en 5 min
     });
     return null;
