@@ -1,3 +1,5 @@
+//schema actual
+
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -9,50 +11,52 @@ datasource db {
 
 model canal {
   id           BigInt         @id @default(autoincrement())
-  id_sucursal  BigInt
   tipo         String         @db.VarChar(45)
   nombre       String         @db.Text
-  estado       String         @db.VarChar(45)
+  estatus      String         @db.VarChar(45)
+  id_negocio   BigInt
+  config       Json?
   asistente    asistente[]
-  sucursal     sucursal       @relation(fields: [id_sucursal], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "canales_ibfk_1")
-  canal_config canal_config[]
+  negocio      negocio        @relation(fields: [id_negocio], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "canales_ibfk_1")
+  conversacion conversacion[]
 
-  @@index([id_sucursal], map: "id_sucursal")
+  @@index([id_negocio], map: "id_negocio")
 }
 
 model lead_prospectos {
-  id          BigInt    @id @default(autoincrement())
-  id_sucursal BigInt?
-  nombre      String?   @db.Text
-  telefono    String?   @db.Text
-  fuente      String?   @db.Text
-  etapa       String?   @db.Text
-  sucursal    sucursal? @relation(fields: [id_sucursal], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lead_prospectos_ibfk_1")
-  mensaje     mensaje[]
+  id           BigInt         @id @default(autoincrement())
+  nombre       String?        @db.Text
+  telefono     String?        @db.Text
+  fuente       String?        @db.Text
+  etapa        String?        @db.Text
+  id_negocio   BigInt?
+  conversacion conversacion[]
+  negocio      negocio?       @relation(fields: [id_negocio], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lead_prospectos_ibfk_1")
 
-  @@index([id_sucursal], map: "id_sucursal")
+  @@index([id_negocio], map: "id_negocio")
 }
 
 model mensaje {
-  id              BigInt           @id @default(autoincrement())
-  id_lead         BigInt?
-  rol             String?          @db.Text
-  contenido       String?          @db.Text
-  tipo            mensaje_tipo?    @default(texto)
-  fecha_envio     DateTime?        @default(now()) @db.DateTime(0)
-  lead_prospectos lead_prospectos? @relation(fields: [id_lead], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mensajes_ibfk_1")
+  id              BigInt        @id @default(autoincrement())
+  rol             mensaje_rol   @default(asistente)
+  contenido       String?       @db.Text
+  create_at       DateTime?     @default(now()) @db.Timestamp(0)
+  id_conversacion BigInt?
+  conversacion    conversacion? @relation(fields: [id_conversacion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mensaje_ibfk_1")
 
-  @@index([id_lead], map: "id_lead")
+  @@index([id_conversacion, create_at], map: "idx_conversation_created")
 }
 
 model prompt {
-  id               BigInt             @id @default(autoincrement())
-  id_asistente     BigInt
-  titulo           String             @db.VarChar(255)
-  prompt_final     String             @db.Text
-  fecha_creacion   DateTime?          @default(now()) @db.DateTime(0)
-  asistente        asistente          @relation(fields: [id_asistente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_prompt_asistente1")
-  prompt_atributos prompt_atributos[]
+  id                  BigInt             @id @default(autoincrement())
+  id_asistente        BigInt
+  titulo              String             @db.VarChar(255)
+  prompt_final        String             @db.Text
+  fecha_creacion      DateTime?          @default(now()) @db.DateTime(0)
+  fecha_actualizacion DateTime?
+  
+  asistente           asistente          @relation(fields: [id_asistente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_prompt_asistente1")
+  prompt_atributos    prompt_atributos[]
 
   @@index([id_asistente], map: "fk_prompt_asistente1_idx")
 }
@@ -63,36 +67,24 @@ model prompt_atributos {
   clave_variable String? @db.VarChar(100)
   pregunta       String? @db.Text
   respuesta      String  @db.Text
+  orden          Int?
   prompt         prompt  @relation(fields: [id_prompt], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "prompt_atributos_ibfk_1")
 
   @@index([id_prompt], map: "id_prompt")
 }
 
-model sucursal {
-  id                 BigInt            @id @default(autoincrement())
-  id_usuario         BigInt
-  nombre_negocio     String?           @db.Text
-  giro               String?           @db.Text
-  ciudad             String?           @db.Text
-  horarios           String?           @db.Text
-  url_redes_sociales String?           @db.Text
-  estado             String?           @db.VarChar(15)
-  canal              canal[]
-  lead_prospectos    lead_prospectos[]
-  usuario            usuario           @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_sucursal_usuario1")
-
-  @@index([id_usuario], map: "fk_sucursal_usuario1_idx")
-}
-
 model usuario {
-  id             BigInt     @id @default(autoincrement())
-  tipo           String?    @db.Text
-  estado         String?    @db.Text
-  email          String     @unique(map: "email") @db.VarChar(255)
-  password_hash  String     @db.VarChar(255)
-  fecha_creacion DateTime?  @default(now()) @db.DateTime(0)
-  nombre         String?    @db.VarChar(255)
-  sucursal       sucursal[]
+  tipo                usuario_tipo          @default(cliente)
+  estatus             usuario_estatus       @default(activo)
+  email               String                @unique(map: "email") @db.VarChar(255)
+  password_hash       String?               @db.VarChar(255)
+  fecha_creacion      DateTime              @default(now()) @db.DateTime(0)
+  nombre              String                @db.VarChar(255)
+  email_verificado    Boolean               @default(false)
+  id_usuario          BigInt                @id @default(autoincrement())
+  provedor            usuario_provedor      @default(EMAIL)
+  negocio             negocio[]
+  verification_tokens verification_tokens[]
 }
 
 model intencion {
@@ -114,8 +106,8 @@ model asistente {
   id_canal    BigInt
   nombre      String      @db.VarChar(45)
   tipo        String      @db.VarChar(45)
-  estado      String      @db.VarChar(45)
-  descripcion String      @db.VarChar(45)
+  estatus     String      @db.VarChar(45)
+  descripcion String?     @db.Text
   canal       canal       @relation(fields: [id_canal], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistente_canal1")
   intencion   intencion[]
   prompt      prompt[]
@@ -123,18 +115,78 @@ model asistente {
   @@index([id_canal], map: "fk_asistente_canal1_idx")
 }
 
-model canal_config {
-  id       Int    @id
-  id_canal BigInt
-  config   Json
-  canal    canal  @relation(fields: [id_canal], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_canal_config_canal1")
+model conversacion {
+  id              BigInt           @id @default(autoincrement())
+  id_lead         BigInt?
+  contacto        String           @db.VarChar(20)
+  cerrado         Boolean?
+  inactividad     DateTime?        @default(now()) @db.Timestamp(0)
+  create_at       DateTime?        @default(now()) @db.Timestamp(0)
+  id_canal        BigInt
+  historial_chat  Json?
+  lead_prospectos lead_prospectos? @relation(fields: [id_lead], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "conversacion_ibfk_1")
+  canal           canal            @relation(fields: [id_canal], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "conversacion_ibfk_2")
+  mensaje         mensaje[]
 
-  @@index([id_canal], map: "fk_canal_config_canal1_idx")
+  @@index([id_canal], map: "id_canal")
+  @@index([id_lead], map: "id_lead")
+  @@index([contacto], map: "idx_contacto")
 }
 
-enum mensaje_tipo {
-  texto
-  imagen
-  boton
-  archivo
+model negocio {
+  id              BigInt            @id @default(autoincrement())
+  fk_usuario      BigInt
+  giro            String?           @db.Text
+  horarios        String?           @db.Text
+  estatus         String?           @db.VarChar(15)
+  nombre          String?           @db.Text
+  ubicacion       String?           @db.Text
+  url_pagina      String?           @db.Text
+  canal           canal[]
+  lead_prospectos lead_prospectos[]
+  usuario         usuario           @relation(fields: [fk_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "fk_negocio_usuario1")
+
+  @@index([fk_usuario], map: "fk_negocio_usuario1_idx")
+}
+
+model verification_tokens {
+  id         String                   @id @db.Char(36)
+  id_usuario BigInt
+  token_hash String                   @db.VarChar(255)
+  type       verification_tokens_type
+  expires_at DateTime                 @db.DateTime(0)
+  used       Boolean                  @default(false)
+  attempts   Int                      @default(0)
+  created_at DateTime                 @default(now()) @db.DateTime(0)
+  usuario    usuario                  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([id_usuario], map: "fk_verification_user")
+}
+
+enum usuario_tipo {
+  cliente
+  admin
+  agente
+}
+
+enum mensaje_rol {
+  asistente
+  prospecto
+  agente_ia
+  sistema
+}
+
+enum usuario_estatus {
+  activo
+  inactivo
+}
+
+enum verification_tokens_type {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum usuario_provedor {
+  EMAIL
+  GOOGLE
 }

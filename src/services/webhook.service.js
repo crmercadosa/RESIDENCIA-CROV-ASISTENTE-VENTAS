@@ -1,12 +1,13 @@
 /**
+ * webhook.service.js
  * Webhook principal de CROV AI
  *
- * - Recibir eventos desde WhatsApp Cloud API
- * - Filtrar eventos irrelevantes (read, delivered, sent)
- * - Normalizar el número telefónico
- * - Identificar intención del usuario
- * - Orquestar respuestas (texto, imagen, documento)
- * - Controlar estados de conversación (activa / cerrada)
+ * - Recibe eventos desde WhatsApp Cloud API
+ * - Filtra eventos irrelevantes (read, delivered, sent)
+ * - Normaliza el número telefónico
+ * - Identifica intención del usuario
+ * - Orquesta respuestas (texto, imagen, documento)
+ * - Controla estados de conversación (activa / cerrada)
  *
  * Este archivo NO genera respuestas directamente
  * Solo coordina servicios especializados
@@ -29,7 +30,7 @@ import {
 import { identifyIntent } from './conversation-services/conversation-intent.service.js';
 import { getSucursalIntents } from './intent-services/intent-cache.service.js';
 import { executeIntention } from './intent-services/intent-handler.service.js';
-import { getSucursalData } from './sucursal.service.js';
+import { getNegocioData } from './negocio.service.js';
 
 /**
  * Procesa mensajes entrantes desde WhatsApp
@@ -45,10 +46,10 @@ const processIncomingMessage = async (payload) => {
     const entry = payload.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
-    if  (!value) return;
-    const phoneNumberId = value.metadata?.phone_number_id;
-
+    
     if (!value) return;
+    
+    const phoneNumberId = value.metadata?.phone_number_id;
 
     /**
      * Ignorar eventos de estado
@@ -107,22 +108,46 @@ const processIncomingMessage = async (payload) => {
     await markAsRead(message.id, phoneNumberId);
 
     /**
-     * Obtener datos de la sucursal 
+     * Obtener número de teléfono del negocio
+     * Este es el número registrado en el canal de WhatsApp
      */
-
     const client_phone = value.metadata?.display_phone_number;
 
-    const sucursalData = await getSucursalData(client_phone);
+    /**
+     * Validar que existe un negocio con ese canal activo
+     */
+    const negocioData = await getNegocioData(client_phone);
 
-    if (!sucursalData){
-      console.log("Sucursal inexistente o inactiva");
+    if (!negocioData) {
+      console.log("Negocio inexistente, canal inactivo o sin configuración");
       return;
     }
+
+    /**
+     * Validar que existe un asistente activo
+     */
+    console.log("DEBUG: Validando asistente...", negocioData.asistente);
+    if (!negocioData.asistente) {
+      console.log("Sin asistente activo configurado");
+      return;
+    }
+
+    /**
+     * Validar que existe configuración de prompt
+     */
+    console.log("DEBUG: Validando prompt...", negocioData.prompt ? "Existe" : "No existe");
+    if (!negocioData.prompt) {
+      console.log("Sin prompt ni intenciones configuradas");
+      return;
+    }
+
+    console.log(`Procesando mensaje para: ${negocioData.negocio.nombre} - Asistente: ${negocioData.asistente.nombre}`);
 
     /**
      * Verificar estado de conversación
      * Si estaba cerrada, se reabre automáticamente
      */
+    console.log("DEBUG: Verificando estado de conversación...");
     if (isConversationClosed(from)) {
       console.log("Reabriendo conversación...");
       reopenConversation(from);
@@ -132,34 +157,39 @@ const processIncomingMessage = async (payload) => {
      * Identificar intención del mensaje
      * Esta capa decide QUÉ quiere el usuario
      */
-    const intent = await identifyIntent(text, sucursalData.asistente.id);
+    console.log("DEBUG: Identificando intención...");
+    const intent = await identifyIntent(text, negocioData.asistente.id);
+    console.log("DEBUG: Intención identificada:", intent);
 
     /**
-     * Menejar intenciones predeterminadas
+     * Manejar intenciones predeterminadas
      */
+    console.log("DEBUG: Verificando intención end_conversation...");
     if (intent === "end_conversation") {
       if (!isConversationClosed(from)) {
         closeConversation(from);
-        const aiResponse = await generateResponse(from, text, sucursalData.prompt);
+        const aiResponse = await generateResponse(from, text, negocioData.prompt);
         await sendMessage(from, aiResponse, phoneNumberId);
       }
       return;
     }
 
     /**
-     * Menejar las intenciones personalizadas para cada sucursal
+     * Manejar las intenciones personalizadas para cada negocio
      */
-    const intenciones = await getSucursalIntents(`${sucursalData.asistente.id}`);
+    console.log("DEBUG: Obteniendo intenciones del asistente...");
+    const intenciones = await getSucursalIntents(`${negocioData.asistente.id}`);
+    console.log("DEBUG: Intenciones obtenidas:", intenciones);
     const intentConfig = intenciones.find(i => i.clave === intent);
 
-    if (intentConfig){
+    if (intentConfig) {
       console.log(`Ejecutando intención personalizada: ${intentConfig.nombre}`);
       updateConversationActivity(from, phoneNumberId);
-      await executeIntention (
+      await executeIntention(
         intentConfig,
         from,
         text,
-        sucursalData.prompt,
+        negocioData.prompt,
         phoneNumberId
       );
       return;
@@ -167,11 +197,14 @@ const processIncomingMessage = async (payload) => {
 
     /**
      * Si el mensaje viene sin intención específica termina en este flujo general.
-     * Aqui puden ser preguntas generales, aclaraciones, etc.
+     * Aquí pueden ser preguntas generales, aclaraciones, etc.
      */
+    console.log("DEBUG: Generando respuesta general...");
     updateConversationActivity(from, phoneNumberId);
-    const aiResponse = await generateResponse(from, text, sucursalData.prompt);
+    const aiResponse = await generateResponse(from, text, negocioData.prompt);
+    console.log("DEBUG: Respuesta generada, enviando mensaje...");
     await sendMessage(from, aiResponse, phoneNumberId);
+    console.log("DEBUG: Mensaje enviado exitosamente");
 
   } catch (err) {
     console.error("Error procesando mensaje:", err);
@@ -181,7 +214,7 @@ const processIncomingMessage = async (payload) => {
 
 /**
  * Normaliza números telefónicos para WhatsApp
- * Actualmente solo soporta normalizacion de numeros que son de México
+ * Actualmente solo soporta normalización de números que son de México
  *
  * - Elimina caracteres no numéricos
  * - Corrige formato Android (521)
