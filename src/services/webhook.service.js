@@ -116,7 +116,7 @@ const processIncomingMessage = async (payload) => {
     /**
      * Validar que existe un negocio con ese canal activo
      */
-    const negocioData = await getNegocioData(client_phone);
+    const negocioData = await getNegocioData(client_phone, phoneNumberId, from);
 
     if (!negocioData) {
       console.log("Negocio inexistente, canal inactivo o sin configuración");
